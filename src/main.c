@@ -68,6 +68,8 @@ static int   l_CoreCompareMode = 0;      // 0 = disable, 1 = send, 2 = receive
 static eCheatMode l_CheatMode = CHEAT_DISABLE;
 static char      *l_CheatNumList = NULL;
 
+static const char *l_PifRomPath = NULL;
+
 /*********************************************************************************************************
  *  Callback functions from the core
  */
@@ -193,6 +195,7 @@ static void printUsage(const char *progname)
            "    --rsp (plugin-spec)   : use rsp plugin given by (plugin-spec)\n"
            "    --emumode (mode)      : set emu mode to: 0=Pure Interpreter 1=Interpreter 2=DynaRec\n"
            "    --testshots (list)    : take screenshots at frames given in comma-separated (list), then quit\n"
+           "    --pifrom (filepath)   : boot using PIF ROM (filepath) (can be only filename or full path)\n"
            "    --set (param-spec)    : set a configuration variable, format: ParamSection[ParamName]=Value\n"
            "    --core-compare-send   : use the Core Comparison debugging feature, in data sending mode\n"
            "    --core-compare-recv   : use the Core Comparison debugging feature, in data receiving mode\n"
@@ -485,6 +488,11 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
             l_TestShotList = ParseNumberList(argv[i+1], NULL);
             i++;
         }
+        else if (strcmp(argv[i], "--pifrom") == 0 && ArgsLeft >= 1)
+        {
+            l_PifRomPath = argv[i+1];
+            i++;
+        }
         else if (strcmp(argv[i], "--set") == 0 && ArgsLeft >= 1)
         {
             if (SetConfigParameter(argv[i+1]) != 0)
@@ -523,6 +531,40 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
     /* missing ROM filepath */
     fprintf(stderr, "Error: no ROM filepath given\n");
     return M64ERR_INPUT_INVALID;
+}
+
+static unsigned char *LoadFileToMemory(const char *Path, long *length)
+{
+    FILE *fPtr = fopen(Path, "rb");
+    if (fPtr == NULL)
+    {
+        fprintf(stderr, "Error: couldn't open file '%s' for reading.\n", Path);
+        return NULL;
+    }
+
+    /* get the length of the file, allocate memory buffer, load it from disk */
+    *length = 0;
+    fseek(fPtr, 0L, SEEK_END);
+    *length = ftell(fPtr);
+    fseek(fPtr, 0L, SEEK_SET);
+    unsigned char *buffer = (unsigned char *) malloc(*length);
+    if (buffer == NULL)
+    {
+        fprintf(stderr, "Error: couldn't allocate %li-byte buffer for file '%s'.\n", *length, Path);
+        fclose(fPtr);
+        return NULL;
+    }
+
+    if (fread(buffer, 1, *length, fPtr) != *length)
+    {
+        fprintf(stderr, "Error: couldn't read %li bytes from ROM image file '%s'.\n", *length, Path);
+        free(buffer);
+        fclose(fPtr);
+        return NULL;
+    }
+
+    fclose(fPtr);
+    return buffer;
 }
 
 /*********************************************************************************************************
@@ -589,39 +631,15 @@ int main(int argc, char *argv[])
         SaveConfigurationOptions();
 
     /* load ROM image */
-    FILE *fPtr = fopen(l_ROMFilepath, "rb");
-    if (fPtr == NULL)
-    {
-        fprintf(stderr, "Error: couldn't open ROM file '%s' for reading.\n", l_ROMFilepath);
-        (*CoreShutdown)();
-        DetachCoreLib();
-        return 7;
-    }
-
-    /* get the length of the ROM, allocate memory buffer, load it from disk */
-    long romlength = 0;
-    fseek(fPtr, 0L, SEEK_END);
-    romlength = ftell(fPtr);
-    fseek(fPtr, 0L, SEEK_SET);
-    unsigned char *ROM_buffer = (unsigned char *) malloc(romlength);
+    long romlength;
+    unsigned char *ROM_buffer = LoadFileToMemory(l_ROMFilepath, &romlength);
     if (ROM_buffer == NULL)
     {
-        fprintf(stderr, "Error: couldn't allocate %li-byte buffer for ROM image file '%s'.\n", romlength, l_ROMFilepath);
-        fclose(fPtr);
+        fprintf(stderr, "Error: couldn't load ROM image file '%s'.\n", l_ROMFilepath);
         (*CoreShutdown)();
         DetachCoreLib();
-        return 8;
+        return 7; // Errors 8 and 9 are deprecated
     }
-    else if (fread(ROM_buffer, 1, romlength, fPtr) != romlength)
-    {
-        fprintf(stderr, "Error: couldn't read %li bytes from ROM image file '%s'.\n", romlength, l_ROMFilepath);
-        free(ROM_buffer);
-        fclose(fPtr);
-        (*CoreShutdown)();
-        DetachCoreLib();
-        return 9;
-    }
-    fclose(fPtr);
 
     /* Try to load the ROM image into the core */
     if ((*CoreDoCommand)(M64CMD_ROM_OPEN, (int) romlength, ROM_buffer) != M64ERR_SUCCESS)
@@ -676,6 +694,26 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* load PIF ROM if one was supplied */
+    if (l_PifRomPath != NULL)
+    {
+        long pifromlength;
+        unsigned char *PIFROM_buffer = LoadFileToMemory(l_PifRomPath, &pifromlength);
+        if (PIFROM_buffer == NULL)
+        {
+            fprintf(stderr, "UI-Console: warning: couldn't load PIF ROM file '%s', will boot normally.\n", l_PifRomPath);
+        }
+        else
+        {
+            if ((*CoreDoCommand)(M64CMD_PIFROM_OPEN, (int)pifromlength, PIFROM_buffer) != M64ERR_SUCCESS)
+            {
+                fprintf(stderr, "UI-Console: warning: core rejected PIF ROM, will boot normally.\n");
+            }
+
+            free(PIFROM_buffer);
+        }
+    }
+
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);
 
@@ -690,6 +728,9 @@ int main(int argc, char *argv[])
     /* save the configuration file again if --saveoptions was specified, to keep any updated parameters from the core/plugins */
     if (l_SaveOptions)
         SaveConfigurationOptions();
+
+    /* close the PIF ROM image (if any) */
+    (*CoreDoCommand)(M64CMD_PIFROM_CLOSE, 0, NULL);
 
     /* Shut down and release the Core library */
     (*CoreShutdown)();

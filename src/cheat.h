@@ -23,9 +23,9 @@
 #define CHEAT_H
 
 #ifdef M64P_BIG_ENDIAN
-  #define sl(mot) mot
+  #define BE32(mot) mot
 #else
-  #define sl(mot) (((mot & 0xFF) << 24) | ((mot & 0xFF00) <<  8) | ((mot & 0xFF0000) >>  8) | ((mot & 0xFF000000) >> 24))
+  #define BE32(mot) (((mot & 0xFF) << 24) | ((mot & 0xFF00) <<  8) | ((mot & 0xFF0000) >>  8) | ((mot & 0xFF000000) >> 24))
 #endif
 
 typedef enum {

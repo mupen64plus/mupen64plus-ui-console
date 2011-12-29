@@ -41,6 +41,10 @@
 int g_CoreCapabilities;
 int g_CoreAPIVersion;
 
+m64p_handle g_ConfigCore = NULL;
+m64p_handle g_ConfigVideo = NULL;
+m64p_handle g_ConfigUI = NULL;
+
 /* definitions of pointers to Core common functions */
 ptr_CoreErrorMessage    CoreErrorMessage = NULL;
 
@@ -334,4 +338,39 @@ m64p_error DetachCoreLib(void)
     return M64ERR_SUCCESS;
 }
 
+m64p_error OpenConfigurationHandles(void)
+{
+    m64p_error rval;
 
+    /* Open Configuration sections for core library and console User Interface */
+    rval = (*ConfigOpenSection)("Core", &g_ConfigCore);
+    if (rval != M64ERR_SUCCESS)
+    {
+        fprintf(stderr, "Error: failed to open 'Core' configuration section\n");
+        return rval;
+    }
+
+    rval = (*ConfigOpenSection)("Video-General", &g_ConfigVideo);
+    if (rval != M64ERR_SUCCESS)
+    {
+        fprintf(stderr, "Error: failed to open 'Video-General' configuration section\n");
+        return rval;
+    }
+
+    rval = (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
+    if (rval != M64ERR_SUCCESS)
+    {
+        fprintf(stderr, "Error: failed to open 'UI-Console' configuration section\n");
+        return rval;
+    }
+
+    /* Set default values for my Config parameters */
+    (*ConfigSetDefaultString)(g_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
+    (*ConfigSetDefaultString)(g_ConfigUI, "ScreenshotPath", "", "Path to directory where screenshots are saved. If this is blank, the default value of ${UserConfigPath}/screenshot will be used");
+    (*ConfigSetDefaultString)(g_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
+    (*ConfigSetDefaultString)(g_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
+    (*ConfigSetDefaultString)(g_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
+    (*ConfigSetDefaultString)(g_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+
+    return M64ERR_SUCCESS;
+}

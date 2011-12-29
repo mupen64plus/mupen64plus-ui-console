@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>  // for opendir(), readdir(), closedir()
 
 #include "m64p_types.h"
@@ -41,6 +42,50 @@
   const int   osal_libsearchdirs = 3;
   const char *osal_libsearchpath[3] = { "/usr/local/lib/mupen64plus",  "/usr/lib/mupen64plus", "./" };
 #endif
+
+int osal_mkdirp(const char *dirpath, int mode)
+{
+    struct stat fileinfo;
+    int dirpathlen = strlen(dirpath);
+    char *currpath = strdup(dirpath);
+
+    /* first, break the path into pieces by replacing all of the slashes wil NULL chars */
+    while (strlen(currpath) > 1)
+    {
+        char *lastslash = strrchr(currpath, '/');
+        if (lastslash == NULL)
+            break;
+        *lastslash = 0;
+    }
+    
+    /* then re-assemble the path from left to right until we get to a directory that doesn't exist */
+    while (strlen(currpath) < dirpathlen)
+    {
+        if (strlen(currpath) > 0 && stat(currpath, &fileinfo) != 0)
+            break;
+        currpath[strlen(currpath)] = '/';
+    }
+
+    /* then walk up the path chain, creating directories along the way */
+    do
+    {
+        if (stat(currpath, &fileinfo) != 0)
+        {
+            if (mkdir(currpath, mode) != 0)
+            {
+                free(currpath);
+                return 1;        /* mkdir failed */
+            }
+        }
+        if (strlen(currpath) == dirpathlen)
+            break;
+        else
+            currpath[strlen(currpath)] = '/';
+    } while (1);
+    
+    free(currpath);        
+    return 0;
+}
 
 osal_lib_search *osal_library_search(const char *searchpath)
 {

@@ -34,8 +34,9 @@
 #include <SDL/SDL_main.h>
 #endif
 
-#include "cheat.h"
 #include "main.h"
+#include "cheat.h"
+#include "screenshot.h"
 #include "plugin.h"
 #include "version.h"
 #include "core_interface.h"
@@ -46,10 +47,6 @@
 int    g_Verbose = 0;
 
 /** static (local) variables **/
-static m64p_handle l_ConfigCore = NULL;
-static m64p_handle l_ConfigVideo = NULL;
-static m64p_handle l_ConfigUI = NULL;
-
 static const char *l_CoreLibPath = NULL;
 static const char *l_ConfigDirPath = NULL;
 static const char *l_ROMFilepath = NULL;       // filepath of ROM to load & run at startup
@@ -93,7 +90,7 @@ static void FrameCallback(unsigned int FrameIndex)
         int nextshot = l_TestShotList[l_TestShotIdx];
         if (nextshot == FrameIndex)
         {
-            (*CoreDoCommand)(M64CMD_TAKE_NEXT_SCREENSHOT, 0, NULL);  /* tell the core take a screenshot */
+            TakeScreenshot(FrameIndex);
             // advance list index to next screenshot frame number.  If it's 0, then quit
             l_TestShotIdx++;
         }
@@ -108,63 +105,27 @@ static void FrameCallback(unsigned int FrameIndex)
 /*********************************************************************************************************
  *  Configuration handling
  */
-
-static m64p_error OpenConfigurationHandles(void)
-{
-    m64p_error rval;
-
-    /* Open Configuration sections for core library and console User Interface */
-    rval = (*ConfigOpenSection)("Core", &l_ConfigCore);
-    if (rval != M64ERR_SUCCESS)
-    {
-        fprintf(stderr, "Error: failed to open 'Core' configuration section\n");
-        return rval;
-    }
-
-    rval = (*ConfigOpenSection)("Video-General", &l_ConfigVideo);
-    if (rval != M64ERR_SUCCESS)
-    {
-        fprintf(stderr, "Error: failed to open 'Video-General' configuration section\n");
-        return rval;
-    }
-
-    rval = (*ConfigOpenSection)("UI-Console", &l_ConfigUI);
-    if (rval != M64ERR_SUCCESS)
-    {
-        fprintf(stderr, "Error: failed to open 'UI-Console' configuration section\n");
-        return rval;
-    }
-
-    /* Set default values for my Config parameters */
-    (*ConfigSetDefaultString)(l_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
-    (*ConfigSetDefaultString)(l_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
-    (*ConfigSetDefaultString)(l_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
-    (*ConfigSetDefaultString)(l_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
-    (*ConfigSetDefaultString)(l_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
-
-    return M64ERR_SUCCESS;
-}
-
-static m64p_error SaveConfigurationOptions(void)
+m64p_error SaveConfigurationOptions(void)
 {
     /* if shared data directory was given on the command line, write it into the config file */
     if (l_DataDirPath != NULL)
-        (*ConfigSetParameter)(l_ConfigCore, "SharedDataPath", M64TYPE_STRING, l_DataDirPath);
+        (*ConfigSetParameter)(g_ConfigCore, "SharedDataPath", M64TYPE_STRING, l_DataDirPath);
 
     /* if any plugin filepaths were given on the command line, write them into the config file */
     if (g_PluginDir != NULL)
-        (*ConfigSetParameter)(l_ConfigUI, "PluginDir", M64TYPE_STRING, g_PluginDir);
+        (*ConfigSetParameter)(g_ConfigUI, "PluginDir", M64TYPE_STRING, g_PluginDir);
     if (g_GfxPlugin != NULL)
-        (*ConfigSetParameter)(l_ConfigUI, "VideoPlugin", M64TYPE_STRING, g_GfxPlugin);
+        (*ConfigSetParameter)(g_ConfigUI, "VideoPlugin", M64TYPE_STRING, g_GfxPlugin);
     if (g_AudioPlugin != NULL)
-        (*ConfigSetParameter)(l_ConfigUI, "AudioPlugin", M64TYPE_STRING, g_AudioPlugin);
+        (*ConfigSetParameter)(g_ConfigUI, "AudioPlugin", M64TYPE_STRING, g_AudioPlugin);
     if (g_InputPlugin != NULL)
-        (*ConfigSetParameter)(l_ConfigUI, "InputPlugin", M64TYPE_STRING, g_InputPlugin);
+        (*ConfigSetParameter)(g_ConfigUI, "InputPlugin", M64TYPE_STRING, g_InputPlugin);
     if (g_RspPlugin != NULL)
-        (*ConfigSetParameter)(l_ConfigUI, "RspPlugin", M64TYPE_STRING, g_RspPlugin);
+        (*ConfigSetParameter)(g_ConfigUI, "RspPlugin", M64TYPE_STRING, g_RspPlugin);
 
     return (*ConfigSaveFile)();
 }
+
 
 /*********************************************************************************************************
  *  Command-line parsing
@@ -375,22 +336,22 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
         if (strcmp(argv[i], "--noosd") == 0)
         {
             int Osd = 0;
-            (*ConfigSetParameter)(l_ConfigCore, "OnScreenDisplay", M64TYPE_BOOL, &Osd);
+            (*ConfigSetParameter)(g_ConfigCore, "OnScreenDisplay", M64TYPE_BOOL, &Osd);
         }
         else if (strcmp(argv[i], "--osd") == 0)
         {
             int Osd = 1;
-            (*ConfigSetParameter)(l_ConfigCore, "OnScreenDisplay", M64TYPE_BOOL, &Osd);
+            (*ConfigSetParameter)(g_ConfigCore, "OnScreenDisplay", M64TYPE_BOOL, &Osd);
         }
         else if (strcmp(argv[i], "--fullscreen") == 0)
         {
             int Fullscreen = 1;
-            (*ConfigSetParameter)(l_ConfigVideo, "Fullscreen", M64TYPE_BOOL, &Fullscreen);
+            (*ConfigSetParameter)(g_ConfigVideo, "Fullscreen", M64TYPE_BOOL, &Fullscreen);
         }
         else if (strcmp(argv[i], "--windowed") == 0)
         {
             int Fullscreen = 0;
-            (*ConfigSetParameter)(l_ConfigVideo, "Fullscreen", M64TYPE_BOOL, &Fullscreen);
+            (*ConfigSetParameter)(g_ConfigVideo, "Fullscreen", M64TYPE_BOOL, &Fullscreen);
         }
         else if (strcmp(argv[i], "--nospeedlimit") == 0)
         {
@@ -417,8 +378,8 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
                 fprintf(stderr, "Warning: couldn't parse resolution '%s'\n", res);
             else
             {
-                (*ConfigSetParameter)(l_ConfigVideo, "ScreenWidth", M64TYPE_INT, &xres);
-                (*ConfigSetParameter)(l_ConfigVideo, "ScreenHeight", M64TYPE_INT, &yres);
+                (*ConfigSetParameter)(g_ConfigVideo, "ScreenWidth", M64TYPE_INT, &xres);
+                (*ConfigSetParameter)(g_ConfigVideo, "ScreenHeight", M64TYPE_INT, &yres);
             }
         }
         else if (strcmp(argv[i], "--cheats") == 0 && ArgsLeft >= 1)
@@ -441,7 +402,7 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
         }
         else if (strcmp(argv[i], "--sshotdir") == 0 && ArgsLeft >= 1)
         {
-            (*ConfigSetParameter)(l_ConfigCore, "ScreenshotPath", M64TYPE_STRING, argv[i+1]);
+            (*ConfigSetParameter)(g_ConfigUI, "ScreenshotPath", M64TYPE_STRING, argv[i+1]);
             i++;
         }
         else if (strcmp(argv[i], "--gfx") == 0 && ArgsLeft >= 1)
@@ -478,7 +439,7 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
                 fprintf(stderr, "Warning: Emulator core doesn't support Dynamic Recompiler.\n");
                 emumode = 1;
             }
-            (*ConfigSetParameter)(l_ConfigCore, "R4300Emulator", M64TYPE_INT, &emumode);
+            (*ConfigSetParameter)(g_ConfigCore, "R4300Emulator", M64TYPE_INT, &emumode);
         }
         else if (strcmp(argv[i], "--testshots") == 0 && ArgsLeft >= 1)
         {
@@ -634,6 +595,8 @@ int main(int argc, char *argv[])
     }
     free(ROM_buffer); /* the core copies the ROM image, so we can release this buffer immediately */
 
+    ScreenshotRomOpen();
+
     /* handle the cheat codes */
     CheatStart(l_CheatMode, l_CheatNumList);
     if (l_CheatMode == CHEAT_SHOW_LIST)
@@ -645,7 +608,7 @@ int main(int argc, char *argv[])
     }
 
     /* search for and load plugins */
-    rval = PluginSearchLoad(l_ConfigUI);
+    rval = PluginSearchLoad(g_ConfigUI);
     if (rval != M64ERR_SUCCESS)
     {
         (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);

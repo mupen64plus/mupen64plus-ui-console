@@ -116,6 +116,16 @@ ifeq ($(BIG_ENDIAN), 1)
   CFLAGS += -DM64P_BIG_ENDIAN
 endif
 
+# test for essential build dependencies
+ifeq ($(shell which pkg-config 2>/dev/null),)
+  $(error pkg-config not found)
+endif
+ifeq ($(shell pkg-config --modversion libpng 2>/dev/null),)
+  $(error No libpng development libraries found!)
+endif
+CFLAGS += $(shell pkg-config --cflags libpng)
+LDLIBS +=  $(shell pkg-config --libs libpng)
+
 # tweak flags for 32-bit build on 64-bit system
 ifeq ($(ARCH_DETECTED), 64BITS_32)
   ifeq ($(OS), FREEBSD)
@@ -204,7 +214,8 @@ SOURCE = \
 	$(SRCDIR)/main.c \
 	$(SRCDIR)/plugin.c \
 	$(SRCDIR)/osal_dynamiclib_unix.c \
-	$(SRCDIR)/osal_files_unix.c
+	$(SRCDIR)/osal_files_unix.c \
+	$(SRCDIR)/screenshot.c
 
 # generate a list of object files build, make a temporary directory for them
 OBJECTS := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(filter %.c, $(SOURCE)))

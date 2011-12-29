@@ -36,6 +36,46 @@
 const int  osal_libsearchdirs = 1;
 const char *osal_libsearchpath[1] = { ".\\" };
 
+int osal_mkdirp(const char *dirpath, int mode)
+{
+    struct _stat fileinfo;
+    size_t dirpathlen = strlen(dirpath);
+    char *currpath = _strdup(dirpath);
+
+    /* first, remove sub-dirs on the end (by replacing slashes with NULL chars) until we find an existing directory */
+    while (strlen(currpath) > 1 && _stat(currpath, &fileinfo) != 0)
+    {
+        char *lastslash = strrchr(currpath, '\\');
+        if (lastslash == NULL)
+        {
+            free(currpath);
+            return 1; /* error: we never found an existing directory, this path is bad */
+        }
+        *lastslash = 0;
+    }
+
+    /* then walk up the path chain, creating directories along the way */
+    do
+    {
+        if (currpath[strlen(currpath)-1] != '\\' && _stat(currpath, &fileinfo) != 0)
+        {
+            if (_mkdir(currpath) != 0)
+            {
+                DebugMessage(M64MSG_ERROR, "MKDIR failed for '%s'.", currpath);
+                free(currpath);
+                return 2;        /* mkdir failed */
+            }
+        }
+        if (strlen(currpath) == dirpathlen)
+            break;
+        else
+            currpath[strlen(currpath)] = '\\';
+    } while (1);
+    
+    free(currpath);        
+    return 0;
+}
+
 osal_lib_search *osal_library_search(const char *searchpath)
 {
     osal_lib_search *head = NULL, *curr = NULL;

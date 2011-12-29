@@ -29,6 +29,24 @@
 #include "m64p_types.h"
 #include "osal_preproc.h"
 
+/* some file-related preprocessor definitions */
+#if defined(WIN32)
+  #define OSAL_DIR_SEPARATOR           '\\'
+  #define unlink _unlink
+  #define PATH_MAX _MAX_PATH
+#else  /* Not WIN32 */
+  #define OSAL_DIR_SEPARATOR           '/'
+  #include <limits.h>  // for PATH_MAX
+  #include <unistd.h>  // for unlink()
+
+  /* PATH_MAX only may be defined by limits.h */
+  #ifndef PATH_MAX
+    #define PATH_MAX 4096
+  #endif
+#endif
+
+extern int osal_mkdirp(const char *dirpath, int mode);
+
 /* data structure for linked list of shared libraries found in a directory */
 typedef struct _osal_lib_search {
   char                     filepath[PATH_MAX];

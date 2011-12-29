@@ -31,10 +31,15 @@
 /* function declarations */
 extern m64p_error AttachCoreLib(const char *CoreLibFilepath);
 extern m64p_error DetachCoreLib(void);
+extern m64p_error OpenConfigurationHandles(void);
 
 /* global variables from core_interface.c */
 extern int g_CoreCapabilities;
 extern int g_CoreAPIVersion;
+
+extern m64p_handle g_ConfigCore;
+extern m64p_handle g_ConfigVideo;
+extern m64p_handle g_ConfigUI;
 
 /* declarations of Core library handle and pointers to common functions */
 extern m64p_dynlib_handle      CoreHandle;

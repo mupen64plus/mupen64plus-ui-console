@@ -102,6 +102,12 @@ static void FrameCallback(unsigned int FrameIndex)
         }
     }
 }
+
+static void InputCallback(void)
+{
+    printf("Hello World InputCallback\n");
+}
+
 /*********************************************************************************************************
  *  Configuration handling
  */
@@ -628,6 +634,12 @@ int main(int argc, char *argv[])
             DetachCoreLib();
             return 13;
         }
+    }
+
+    /* set up the input handling callback */
+    if ((*CoreDoCommand)(M64CMD_SET_INPUT_CALLBACK, 0, InputCallback) != M64ERR_SUCCESS)
+    {
+        fprintf(stderr, "UI-Console: warning: couldn't set input callback, input won't work.\n");
     }
 
     /* set up Frame Callback if --testshots is enabled */

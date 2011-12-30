@@ -33,6 +33,7 @@
 #ifdef __APPLE__
 #include <SDL/SDL_main.h>
 #endif
+#include <SDL/SDL.h>
 
 #include "main.h"
 #include "cheat.h"
@@ -42,6 +43,7 @@
 #include "core_interface.h"
 #include "compare_core.h"
 #include "osal_preproc.h"
+#include "eventloop.h"
 
 /** global variables **/
 int    g_Verbose = 0;
@@ -105,12 +107,26 @@ static void FrameCallback(unsigned int FrameIndex)
 
 static void InputCallback(void)
 {
-    printf("Hello World InputCallback\n");
+    SDL_PumpEvents();
 }
 
 /*********************************************************************************************************
  *  Configuration handling
  */
+
+void SetConfigurationDefaults(void)
+{
+    /* Set default values for my Config parameters */
+    (*ConfigSetDefaultString)(g_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
+    (*ConfigSetDefaultString)(g_ConfigUI, "ScreenshotPath", "", "Path to directory where screenshots are saved. If this is blank, the default value of ${UserConfigPath}/screenshot will be used");
+    (*ConfigSetDefaultString)(g_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
+    (*ConfigSetDefaultString)(g_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
+    (*ConfigSetDefaultString)(g_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
+    (*ConfigSetDefaultString)(g_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+
+    event_set_core_defaults();
+}
+
 m64p_error SaveConfigurationOptions(void)
 {
     /* if shared data directory was given on the command line, write it into the config file */
@@ -533,6 +549,8 @@ int main(int argc, char *argv[])
         return 4;
     }
 
+    SetConfigurationDefaults();
+
     /* parse command-line options */
     rval = ParseCommandLineFinal(argc, (const char **) argv);
     if (rval != M64ERR_SUCCESS)
@@ -636,7 +654,9 @@ int main(int argc, char *argv[])
         }
     }
 
-    /* set up the input handling callback */
+    /* set up input handling */
+    event_initialize();
+
     if ((*CoreDoCommand)(M64CMD_SET_INPUT_CALLBACK, 0, InputCallback) != M64ERR_SUCCESS)
     {
         fprintf(stderr, "UI-Console: warning: couldn't set input callback, input won't work.\n");

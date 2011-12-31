@@ -267,7 +267,9 @@ void event_initialize(void)
     const char *event_str = NULL;
     int i;
 
-    SDL_Init(SDL_INIT_EVERYTHING); // TODO XXX why is this needed here for the filter to work?
+    // initializing the video system is required to recieve event notifications
+    if (!SDL_WasInit(SDL_INIT_VIDEO))
+        SDL_InitSubSystem(SDL_INIT_VIDEO);
 
     /* set initial state of all joystick commands to 'off' */
     for (i = 0; i < NumJoyCommands; i++)

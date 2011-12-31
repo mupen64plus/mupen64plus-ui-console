@@ -24,6 +24,7 @@
  */
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "m64p_types.h"
 #include "m64p_common.h"
@@ -365,4 +366,131 @@ m64p_error OpenConfigurationHandles(void)
     }
 
     return M64ERR_SUCCESS;
+}
+
+#define M64P_ASSERT(x) assert(x == M64ERR_SUCCESS)
+
+void stop_emu(void)
+{
+    (*CoreDoCommand)(M64CMD_STOP, 0, NULL);
+}
+
+void toggle_fullscreen(void)
+{
+    int mode, new_mode;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_VIDEO_MODE, &mode));
+
+    if (mode == M64VIDEO_WINDOWED)
+        new_mode = M64VIDEO_FULLSCREEN;
+    else
+        new_mode = M64VIDEO_WINDOWED;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_VIDEO_MODE, &new_mode));
+}
+
+void toggle_pause(void)
+{
+    int mode, new_mode;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_EMU_STATE, &mode));
+
+    if (mode == M64EMU_RUNNING)
+        new_mode = M64EMU_PAUSED;
+    else
+        new_mode = M64EMU_RUNNING;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_EMU_STATE, &new_mode));
+}
+
+void savestates_set_slot(int slot)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SAVESTATE_SLOT, &slot));
+}
+
+void savestate_save(int type, char *filename)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_STATE_SAVE, type, filename));
+}
+
+void savestate_load(char *filename)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_STATE_LOAD, 0, filename));
+}
+
+void savestate_inc_slot(void)
+{
+    int slot, new_slot;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_SAVESTATE_SLOT, &slot));
+
+    new_slot = (slot + 1) % 10;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SAVESTATE_SLOT, &new_slot));
+}
+
+void volume_mute(void)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_MUTE, 0, NULL));
+}
+
+void volume_up(void)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_UP, 0, NULL));
+}
+
+void volume_down(void)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_DOWN, 0, NULL));
+}
+
+void set_fastforward(int enable)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_LIMITER, &enable));
+}
+
+void soft_reset(void)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_SOFT_RESET, 0, NULL));
+}
+
+void speed_delta(int delta)
+{
+    int speed;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_SPEED_FACTOR, &speed));
+
+    speed += delta;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_FACTOR, &speed));
+}
+
+void frame_advance(void)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_ADVANCE_FRAME, 0, NULL));
+}
+
+static int compile_sdl_key(unsigned short keysym, unsigned short keymod)
+{
+    return (keysym) | (keymod << 16);
+}
+
+void send_key_down(unsigned short keysym, unsigned short keymod)
+{
+    M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYDOWN, compile_sdl_key(keysym, keymod), NULL));
+}
+
+void send_key_up(unsigned short keysym, unsigned short keymod)
+{
+    M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYUP, compile_sdl_key(keysym, keymod), NULL));
+}
+
+void take_screenshot(void)
+{
+    TakeScreenshot(123); // TODO XXX get real frame number
+}
+
+void set_gameshark_button(int enable)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_GAMESHARK_BUTTON, &enable));
 }

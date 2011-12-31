@@ -22,139 +22,9 @@
 
 #include <stdlib.h>
 #include <SDL.h>
-#include <assert.h>
 
-#include "main.h"
 #include "eventloop.h"
 #include "core_interface.h"
-#include "screenshot.h"
-
-#define M64P_ASSERT(x) assert(x == M64ERR_SUCCESS)
-
-static void stop_emu(void)
-{
-    (*CoreDoCommand)(M64CMD_STOP, 0, NULL);
-}
-
-static void toggle_fullscreen(void)
-{
-    int mode, new_mode;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_VIDEO_MODE, &mode));
-
-    if (mode == M64VIDEO_WINDOWED)
-        new_mode = M64VIDEO_FULLSCREEN;
-    else
-        new_mode = M64VIDEO_WINDOWED;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_VIDEO_MODE, &new_mode));
-}
-
-static void toggle_pause(void)
-{
-    int mode, new_mode;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_EMU_STATE, &mode));
-
-    if (mode == M64EMU_RUNNING)
-        new_mode = M64EMU_PAUSED;
-    else
-        new_mode = M64EMU_RUNNING;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_EMU_STATE, &new_mode));
-}
-
-static void savestates_set_slot(int slot)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SAVESTATE_SLOT, &slot));
-}
-
-static void savestate_save(int type, char *filename)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_STATE_SAVE, type, filename));
-}
-
-static void savestate_load(char *filename)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_STATE_LOAD, 0, filename));
-}
-
-static void savestate_inc_slot(void)
-{
-    int slot, new_slot;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_SAVESTATE_SLOT, &slot));
-
-    new_slot = (slot + 1) % 10;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SAVESTATE_SLOT, &new_slot));
-}
-
-static void volume_mute(void)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_MUTE, 0, NULL));
-}
-
-static void volume_up(void)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_UP, 0, NULL));
-}
-
-static void volume_down(void)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_DOWN, 0, NULL));
-}
-
-static void set_fastforward(int enable)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_LIMITER, &enable));
-}
-
-static void soft_reset(void)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_SOFT_RESET, 0, NULL));
-}
-
-static void speed_delta(int delta)
-{
-    int speed;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_SPEED_FACTOR, &speed));
-
-    speed += delta;
-
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_FACTOR, &speed));
-}
-
-static void frame_advance(void)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_ADVANCE_FRAME, 0, NULL));
-}
-
-static int compile_sdl_key(int keysym, int keymod)
-{
-    return (keysym) | (keymod << 16);
-}
-
-static void send_key_down(int keysym, int keymod)
-{
-    M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYDOWN, compile_sdl_key(keysym, keymod), NULL));
-}
-
-static void send_key_up(int keysym, int keymod)
-{
-    M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYUP, compile_sdl_key(keysym, keymod), NULL));
-}
-
-static void take_screenshot(void)
-{
-    TakeScreenshot(123); // TODO XXX get real frame number
-}
-
-static void set_gameshark_button(int enable)
-{
-    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_GAMESHARK_BUTTON, &enable));
-}
 
 /*********************************************************************************************************
 * static variables and definitions for eventloop.c
@@ -502,12 +372,8 @@ void event_sdl_keydown(int keysym, int keymod)
         frame_advance();
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdGameshark))
         set_gameshark_button(1);
-    else
-    {
-        /* pass all other keypresses to the input plugin */
+    else /* pass all other keypresses to the input plugin */
         send_key_down(keymod, keysym);
-    }
-
 }
 
 void event_sdl_keyup(int keysym, int keymod)
@@ -518,7 +384,8 @@ void event_sdl_keyup(int keysym, int keymod)
         set_fastforward(0);
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdGameshark))
         set_gameshark_button(0);
-    else send_key_up(keymod, keysym);
+    else
+        send_key_up(keymod, keysym);
 }
 
 

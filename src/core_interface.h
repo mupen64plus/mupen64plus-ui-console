@@ -28,11 +28,6 @@
 #include "m64p_config.h"
 #include "m64p_debugger.h"
 
-/* function declarations */
-extern m64p_error AttachCoreLib(const char *CoreLibFilepath);
-extern m64p_error DetachCoreLib(void);
-extern m64p_error OpenConfigurationHandles(void);
-
 /* global variables from core_interface.c */
 extern int g_CoreCapabilities;
 extern int g_CoreAPIVersion;
@@ -102,6 +97,29 @@ extern ptr_DebugMemWrite8         DebugMemWrite8;
 extern ptr_DebugGetCPUDataPtr     DebugGetCPUDataPtr;
 extern ptr_DebugBreakpointLookup  DebugBreakpointLookup;
 extern ptr_DebugBreakpointCommand DebugBreakpointCommand;
+
+/* function declarations */
+extern m64p_error AttachCoreLib(const char *CoreLibFilepath);
+extern m64p_error DetachCoreLib(void);
+extern m64p_error OpenConfigurationHandles(void);
+
+void stop_emu(void);
+void toggle_fullscreen(void);
+void savestates_set_slot(int slot);
+void savestate_save(int type, char *filename);
+void savestate_load(char *filename);
+void savestate_inc_slot(void);
+void volume_mute(void);
+void volume_up(void);
+void volume_down(void);
+void set_fastforward(int enable);
+void soft_reset(void);
+void speed_delta(int delta);
+void frame_advance(void);
+void send_key_down(unsigned short keysym, unsigned short keymod);
+void send_key_up(unsigned short keysym, unsigned short keymod);
+void take_screenshot(void);
+void set_gameshark_button(int enable);
 
 #endif /* #define CORE_INTERFACE_H */
 

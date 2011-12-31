@@ -199,6 +199,11 @@ else
   INSTALL_STRIP_FLAG ?= -s
 endif
 
+# optional features
+ifeq ($(LIRC), 1)
+  CFLAGS += -DWITH_LIRC
+endif
+
 # set installation options
 ifeq ($(PREFIX),)
   PREFIX := /usr/local
@@ -225,6 +230,12 @@ SOURCE = \
 	$(SRCDIR)/screenshot.c \
 	$(SRCDIR)/eventloop.c
 
+# source files for optional features
+ifeq ($(LIRC), 1)
+  SOURCE += $(SRCDIR)/lirc.c
+  LDLIBS += -llirc_client
+endif
+
 # generate a list of object files build, make a temporary directory for them
 OBJECTS := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(filter %.c, $(SOURCE)))
 OBJDIRS = $(dir $(OBJECTS))
@@ -248,6 +259,7 @@ targets:
 	@echo "    APIDIR=path    == path to find Mupen64Plus Core headers"
 	@echo "    OPTFLAGS=flags == compiler optimization (default: -O3)"
 	@echo "    PIE=(1|0)      == Force enable/disable of position independent executables"
+	@echo "    LIRC=1         == enable LIRC support"
 	@echo "  Install Options:"
 	@echo "    PREFIX=path    == install/uninstall prefix (default: /usr/local/)"
 	@echo "    BINDIR=path    == path to install mupen64plus binary (default: PREFIX/bin/)"

@@ -44,6 +44,9 @@
 #include "compare_core.h"
 #include "osal_preproc.h"
 #include "eventloop.h"
+#ifdef WITH_LIRC
+#include "lirc.h"
+#endif
 
 /** global variables **/
 int    g_Verbose = 0;
@@ -66,6 +69,20 @@ static int   l_CoreCompareMode = 0;      // 0 = disable, 1 = send, 2 = receive
 
 static eCheatMode l_CheatMode = CHEAT_DISABLE;
 static char      *l_CheatNumList = NULL;
+
+// TODO XXX integrate or remove
+void DebugMessage(int level, const char *message, ...)
+{
+  char msgbuf[1024];
+  va_list args;
+
+  va_start(args, message);
+  vsprintf(msgbuf, message, args);
+
+  printf("DebugMessage: %s\n", msgbuf);
+
+  va_end(args);
+}
 
 /*********************************************************************************************************
  *  Callback functions from the core
@@ -107,7 +124,10 @@ static void FrameCallback(unsigned int FrameIndex)
 
 static void InputCallback(void)
 {
-    SDL_PumpEvents();
+    SDL_PumpEvents(); // Will call event_sdl_filter
+#ifdef WITH_LIRC
+    lircCheckInput();
+#endif
 }
 
 /*********************************************************************************************************
@@ -656,7 +676,9 @@ int main(int argc, char *argv[])
 
     /* set up input handling */
     event_initialize();
-
+#ifdef WITH_LIRC
+    lircStart();
+#endif
     if ((*CoreDoCommand)(M64CMD_SET_INPUT_CALLBACK, 0, InputCallback) != M64ERR_SUCCESS)
     {
         fprintf(stderr, "UI-Console: warning: couldn't set input callback, input won't work.\n");
@@ -673,6 +695,12 @@ int main(int argc, char *argv[])
 
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);
+
+    /* shut down input handling */
+#ifdef WITH_LIRC
+    lircStop();
+#endif
+    // TODO XXX kill SDL?
 
     /* detach plugins from core and unload them */
     for (i = 0; i < 4; i++)

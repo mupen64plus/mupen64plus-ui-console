@@ -22,95 +22,138 @@
 
 #include <stdlib.h>
 #include <SDL.h>
+#include <assert.h>
 
 #include "main.h"
 #include "eventloop.h"
 #include "core_interface.h"
+#include "screenshot.h"
+
+#define M64P_ASSERT(x) assert(x == M64ERR_SUCCESS)
 
 static void stop_emu(void)
 {
-    printf("%s!\n", __func__);
     (*CoreDoCommand)(M64CMD_STOP, 0, NULL);
 }
 
 static void toggle_fullscreen(void)
 {
-    printf("%s STUB!\n", __func__);
+    int mode, new_mode;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_VIDEO_MODE, &mode));
+
+    if (mode == M64VIDEO_WINDOWED)
+        new_mode = M64VIDEO_FULLSCREEN;
+    else
+        new_mode = M64VIDEO_WINDOWED;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_VIDEO_MODE, &new_mode));
 }
 
 static void toggle_pause(void)
 {
-    printf("%s STUB!\n", __func__);
+    int mode, new_mode;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_EMU_STATE, &mode));
+
+    if (mode == M64EMU_RUNNING)
+        new_mode = M64EMU_PAUSED;
+    else
+        new_mode = M64EMU_RUNNING;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_EMU_STATE, &new_mode));
 }
 
 static void savestates_set_slot(int slot)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SAVESTATE_SLOT, &slot));
 }
 
-static void savestate_save(int x, char *y)
+static void savestate_save(int type, char *filename)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_STATE_SAVE, type, filename));
 }
 
-static void savestate_load(char *x)
+static void savestate_load(char *filename)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_STATE_LOAD, 0, filename));
 }
 
 static void savestate_inc_slot(void)
 {
-    printf("%s STUB!\n", __func__);
+    int slot, new_slot;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_SAVESTATE_SLOT, &slot));
+
+    new_slot = (slot + 1) % 10;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SAVESTATE_SLOT, &new_slot));
 }
 
 static void volume_mute(void)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_MUTE, 0, NULL));
 }
 
 static void volume_up(void)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_UP, 0, NULL));
 }
 
 static void volume_down(void)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_VOLUME_DOWN, 0, NULL));
 }
 
-static void set_fastforward(int x)
+static void set_fastforward(int enable)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_LIMITER, &enable));
 }
 
 static void soft_reset(void)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_SOFT_RESET, 0, NULL));
 }
 
 static void speed_delta(int delta)
 {
-    printf("%s STUB!\n", __func__);
+    int speed;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_QUERY, M64CORE_SPEED_FACTOR, &speed));
+
+    speed += delta;
+
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_FACTOR, &speed));
 }
 
 static void frame_advance(void)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_ADVANCE_FRAME, 0, NULL));
+}
+
+static int compile_sdl_key(int keysym, int keymod)
+{
+    return (keysym) | (keymod << 16);
 }
 
 static void send_key_down(int keysym, int keymod)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYDOWN, compile_sdl_key(keysym, keymod), NULL));
 }
 
 static void send_key_up(int keysym, int keymod)
 {
-    printf("%s STUB!\n", __func__);
+    M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYUP, compile_sdl_key(keysym, keymod), NULL));
 }
 
 static void take_screenshot(void)
 {
-    printf("%s STUB!\n", __func__);
+    TakeScreenshot(123); // TODO XXX get real frame number
+}
+
+static void set_gameshark_button(int enable)
+{
+    M64P_ASSERT((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_GAMESHARK_BUTTON, &enable));
 }
 
 /*********************************************************************************************************
@@ -164,8 +207,6 @@ static const char *JoyCmdName[] = { "Joy Mapping Fullscreen",
 static const int NumJoyCommands = sizeof(JoyCmdName) / sizeof(const char *);
 
 static int JoyCmdActive[16];  /* if extra joystick commands are added above, make sure there is enough room in this array */
-
-static int KbdGamesharkPressed = 0;
 
 /*********************************************************************************************************
 * static functions for eventloop.c
@@ -317,7 +358,7 @@ static int event_sdl_filter(const SDL_Event *event)
                     else if (cmd == joyPause)
                         toggle_pause();
                     else if (cmd == joySave)
-                        savestate_save(0, NULL); /* save in mupen64plus format using current slot */
+                        savestate_save(1, NULL); /* save in mupen64plus format using current slot */
                     else if (cmd == joyLoad)
                         savestate_load(NULL); /* load using current slot */
                     else if (cmd == joyIncrement)
@@ -425,20 +466,16 @@ void event_sdl_keydown(int keysym, int keymod)
 {
     /* check for the only 2 hard-coded key commands: Alt-enter for fullscreen and 0-9 for save state slot */
     if (keysym == SDLK_RETURN && keymod & (KMOD_LALT | KMOD_RALT))
-    {
         toggle_fullscreen();
-    }
     else if (keysym >= SDLK_0 && keysym <= SDLK_9)
-    {
         savestates_set_slot(keysym - SDLK_0);
-    }
     /* check all of the configurable commands */
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdStop))
         stop_emu();
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdFullscreen))
         toggle_fullscreen();
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdSave))
-        savestate_save(0, NULL); /* save in mupen64plus format using current slot */
+        savestate_save(1, NULL); /* save in mupen64plus format using current slot */
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdLoad))
         savestate_load(NULL); /* load using current slot */
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdIncrement))
@@ -460,17 +497,11 @@ void event_sdl_keydown(int keysym, int keymod)
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdDecrease))
         volume_down();
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdForward))
-    {
         set_fastforward(1);
-    }
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdAdvance))
-    {
         frame_advance();
-    }
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdGameshark))
-    {
-        KbdGamesharkPressed = 1;
-    }
+        set_gameshark_button(1);
     else
     {
         /* pass all other keypresses to the input plugin */
@@ -482,24 +513,12 @@ void event_sdl_keydown(int keysym, int keymod)
 void event_sdl_keyup(int keysym, int keymod)
 {
     if (keysym == ConfigGetParamInt(g_ConfigCore, kbdStop))
-    {
         return;
-    }
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdForward))
-    {
         set_fastforward(0);
-    }
     else if (keysym == ConfigGetParamInt(g_ConfigCore, kbdGameshark))
-    {
-        KbdGamesharkPressed = 0;
-    }
+        set_gameshark_button(0);
     else send_key_up(keymod, keysym);
-
-}
-
-int event_gameshark_active(void)
-{
-    return KbdGamesharkPressed || JoyCmdActive[joyGameshark];
 }
 
 

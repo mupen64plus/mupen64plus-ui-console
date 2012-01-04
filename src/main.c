@@ -333,7 +333,7 @@ static int *ParseNumberList(const char *InputString, int *ValuesFound)
     return OutputList;
 }
 
-static int ParseCommandLineInitial(int argc, const char **argv)
+static int ParseCommandLineInitial(int argc, char **argv)
 {
     int i;
 
@@ -367,7 +367,7 @@ static int ParseCommandLineInitial(int argc, const char **argv)
     return 0;
 }
 
-static m64p_error ParseCommandLineFinal(int argc, const char **argv)
+static m64p_error ParseCommandLineFinal(int argc, char **argv)
 {
     int i;
 
@@ -544,7 +544,7 @@ int main(int argc, char *argv[])
     printf("%s Version %i.%i.%i\n\n", CONSOLE_UI_NAME, VERSION_PRINTF_SPLIT(CONSOLE_UI_VERSION));
 
     /* bootstrap some special parameters from the command line */
-    if (ParseCommandLineInitial(argc, (const char **) argv) != 0)
+    if (ParseCommandLineInitial(argc, argv) != 0)
         return 1;
 
     /* load the Mupen64Plus core library */
@@ -572,7 +572,7 @@ int main(int argc, char *argv[])
     SetConfigurationDefaults();
 
     /* parse command-line options */
-    rval = ParseCommandLineFinal(argc, (const char **) argv);
+    rval = ParseCommandLineFinal(argc, argv);
     if (rval != M64ERR_SUCCESS)
     {
         (*CoreShutdown)();

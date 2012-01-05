@@ -28,6 +28,7 @@
 #include "plugin.h"
 #include "version.h"
 #include "core_interface.h"
+#include "osal_files.h"
 
 #include <png.h>
 
@@ -156,13 +157,13 @@ char *GetNextScreenshotFileName()
     if (strlen(SshotDir) == 0)
     {
         const char *UserDataPath = ConfigGetUserDataPath();
-        BaseDir = malloc(strlen(UserDataPath) + strlen("screenshot/") + 1);
+        BaseDir = (char *) malloc(strlen(UserDataPath) + strlen("screenshot/") + 1);
         sprintf(BaseDir, "%sscreenshot%c", UserDataPath, OSAL_DIR_SEPARATOR);
     }
     else
     {
-        int len = strlen(SshotDir);
-        BaseDir = malloc(len + 1 + 1);
+        size_t len = strlen(SshotDir);
+        BaseDir = (char *) malloc(len + 1 + 1);
         strcpy(BaseDir, SshotDir);
 
         // make sure there is a slash on the end of the pathname
@@ -176,7 +177,7 @@ char *GetNextScreenshotFileName()
     osal_mkdirp(BaseDir, 0700);
 
     // look for an unused screenshot filename
-    filename = malloc(strlen(BaseDir) + 20 + 1 + 3 + 4 + 1);
+    filename = (char *) malloc(strlen(BaseDir) + 20 + 1 + 3 + 4 + 1);
     for (; CurrentShotIndex < 1000; CurrentShotIndex++) {
         sprintf(filename, "%s%.20s-%03i.png", BaseDir, hdr.Name, CurrentShotIndex);
         file = fopen(filename, "r");

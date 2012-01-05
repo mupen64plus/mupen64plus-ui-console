@@ -120,11 +120,14 @@ endif
 ifeq ($(shell which pkg-config 2>/dev/null),)
   $(error pkg-config not found)
 endif
+ifeq ($(shell pkg-config --modversion zlib 2>/dev/null),)
+  $(error No zlib development libraries found!)
+endif
 ifeq ($(shell pkg-config --modversion libpng 2>/dev/null),)
   $(error No libpng development libraries found!)
 endif
-CFLAGS += $(shell pkg-config --cflags libpng)
-LDLIBS +=  $(shell pkg-config --libs libpng)
+CFLAGS += $(shell pkg-config --cflags zlib libpng)
+LDLIBS +=  $(shell pkg-config --libs zlib libpng)
 
 # test for presence of SDL
 ifeq ($(shell which sdl-config 2>/dev/null),)

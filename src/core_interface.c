@@ -37,6 +37,7 @@
 
 #include "version.h"
 #include "core_interface.h"
+#include "screenshot.h"
 
 /* global data definitions */
 int g_CoreCapabilities;
@@ -368,7 +369,12 @@ m64p_error OpenConfigurationHandles(void)
     return M64ERR_SUCCESS;
 }
 
-#define M64P_ASSERT(x) assert(x == M64ERR_SUCCESS)
+#define M64P_ASSERT(x) \
+	if ((x) != M64ERR_SUCCESS) \
+	{ \
+		fprintf(stderr, "Error: Command failed: %s", #x); \
+		return; \
+	}
 
 void stop_emu(void)
 {

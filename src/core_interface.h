@@ -105,6 +105,7 @@ extern m64p_error OpenConfigurationHandles(void);
 
 void stop_emu(void);
 void toggle_fullscreen(void);
+void toggle_pause(void);
 void savestates_set_slot(int slot);
 void savestate_save(int type, char *filename);
 void savestate_load(char *filename);

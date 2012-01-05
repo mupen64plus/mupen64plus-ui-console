@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="mupen64plus-ui-console"
 	ProjectGUID="{0E29D9F8-C675-4D21-AF16-AA80EDDB264E}"
 	RootNamespace="mupen64plusuiconsole"
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\mupen64plus-core\src\api"
+				AdditionalIncludeDirectories="&quot;..\..\..\mupen64plus-core\src\api&quot;;&quot;..\..\..\mupen64plus-win32-deps\SDL-1.2.14\include&quot;;&quot;..\..\..\mupen64plus-win32-deps\zlib-1.2.3\include&quot;;&quot;..\..\..\mupen64plus-win32-deps\libpng-1.2.37\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDLmain.lib"
+				AdditionalDependencies="..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDLmain.lib ..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDL.lib ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\lib\zlib.lib ..\..\..\mupen64plus-win32-deps\libpng-1.2.37\lib\libpng.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\mupen64plus-core\src\api"
+				AdditionalIncludeDirectories="&quot;..\..\..\mupen64plus-core\src\api&quot;;&quot;..\..\..\mupen64plus-win32-deps\SDL-1.2.14\include&quot;;&quot;..\..\..\mupen64plus-win32-deps\zlib-1.2.3\include&quot;;&quot;..\..\..\mupen64plus-win32-deps\libpng-1.2.37\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDLmain.lib"
+				AdditionalDependencies="..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDLmain.lib ..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDL.lib ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\lib\zlib.lib ..\..\..\mupen64plus-win32-deps\libpng-1.2.37\lib\libpng.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -197,6 +197,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\eventloop.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lirc.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\main.c"
 				>
 			</File>
@@ -210,6 +218,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\plugin.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\screenshot.c"
 				>
 			</File>
 		</Filter>
@@ -231,6 +243,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\src\eventloop.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\lirc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\src\main.h"
 				>
 			</File>
@@ -248,6 +268,10 @@
 			</File>
 			<File
 				RelativePath="..\..\src\plugin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\src\screenshot.h"
 				>
 			</File>
 			<File

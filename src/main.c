@@ -33,7 +33,7 @@
 #ifdef __APPLE__
 #include <SDL/SDL_main.h>
 #endif
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #include "main.h"
 #include "cheat.h"

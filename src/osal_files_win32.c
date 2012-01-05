@@ -23,11 +23,15 @@
  *
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
+#include <direct.h>
 
+#include "main.h" // For DebugMessage
 #include "m64p_types.h"
 #include "osal_preproc.h"
 #include "osal_files.h"

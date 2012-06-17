@@ -25,6 +25,8 @@
 extern void DebugMessage(int level, const char *message, ...);
 extern void DebugCallback(void *Context, int level, const char *message);
 
+extern void main_take_next_screenshot(void);
+
 extern int  g_Verbose;
 
 #endif /* __MAIN_H__ */

@@ -48,6 +48,9 @@
 #include "lirc.h"
 #endif
 
+/* Version number for UI-Console config section parameters */
+#define CONFIG_PARAM_VERSION     1.00
+
 /** global variables **/
 int    g_Verbose = 0;
 
@@ -64,7 +67,8 @@ static const char *l_ROMFilepath = NULL;       // filepath of ROM to load & run 
 
 static int  *l_TestShotList = NULL;      // list of screenshots to take for regression test support
 static int   l_TestShotIdx = 0;          // index of next screenshot frame in list
-static int   l_SaveOptions = 0;          // save command-line options in configuration file
+static int   l_TakeScreenshot = 0;       // take an screenshot next time the frame callback is called
+static int   l_SaveOptions = 1;          // save command-line options in configuration file (enabled by default)
 static int   l_CoreCompareMode = 0;      // 0 = disable, 1 = send, 2 = receive
 
 static eCheatMode l_CheatMode = CHEAT_DISABLE;
@@ -82,6 +86,11 @@ void DebugMessage(int level, const char *message, ...)
   printf("DebugMessage: %s\n", msgbuf);
 
   va_end(args);
+}
+
+void main_take_next_screenshot(void)
+{
+    l_TakeScreenshot = 1;
 }
 
 /*********************************************************************************************************
@@ -103,6 +112,9 @@ void DebugCallback(void *Context, int level, const char *message)
 
 static void FrameCallback(unsigned int FrameIndex)
 {
+    // TODO XXX does the core now guarantee one and only one callback
+    // with the new "callback only if OSD isn't drawn" condition?
+
     // take a screenshot if we need to
     if (l_TestShotList != NULL)
     {
@@ -120,6 +132,12 @@ static void FrameCallback(unsigned int FrameIndex)
             l_TestShotList = NULL;
         }
     }
+
+    if (l_TakeScreenshot)
+    {
+        TakeScreenshot(FrameIndex);
+        l_TakeScreenshot = 0;
+    }
 }
 
 static void InputCallback(void)
@@ -136,13 +154,43 @@ static void InputCallback(void)
 
 void SetConfigurationDefaults(void)
 {
+    float fConfigParamsVersion;
+    int bSaveConfig = 0;
+
+    if ((*ConfigGetParameter)(g_ConfigUI, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
+    {
+        fprintf(stderr, "Warning: No version number in 'UI-Console' config section. Setting defaults.\n");
+        (*ConfigDeleteSection)("UI-Console");
+        (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
+        bSaveConfig = 1;
+    }
+    else if (((int) fConfigParamsVersion) != ((int) CONFIG_PARAM_VERSION))
+    {
+        fprintf(stderr, "Warning: Incompatible version %.2f in 'UI-Console' config section: current is %.2f. Setting defaults.\n", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
+        (*ConfigDeleteSection)("UI-Console");
+        (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
+        bSaveConfig = 1;
+    }
+    else if ((CONFIG_PARAM_VERSION - fConfigParamsVersion) >= 0.0001f)
+    {
+        /* handle upgrades */
+        float fVersion = CONFIG_PARAM_VERSION;
+        ConfigSetParameter(g_ConfigUI, "Version", M64TYPE_FLOAT, &fVersion);
+        fprintf(stderr, "Info: Updating parameter set version in 'UI-Console' config section to %.2f\n", fVersion);
+        bSaveConfig = 1;
+    }
+
     /* Set default values for my Config parameters */
+    (*ConfigSetDefaultFloat)(g_ConfigUI, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus UI-Console config parameter set version number.  Please don't change this version number.");
     (*ConfigSetDefaultString)(g_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
     (*ConfigSetDefaultString)(g_ConfigUI, "ScreenshotPath", "", "Path to directory where screenshots are saved. If this is blank, the default value of ${UserConfigPath}/screenshot will be used");
     (*ConfigSetDefaultString)(g_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
     (*ConfigSetDefaultString)(g_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
     (*ConfigSetDefaultString)(g_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
     (*ConfigSetDefaultString)(g_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+
+    if (bSaveConfig && ConfigSaveSection != NULL) /* ConfigSaveSection was added in Config API v2.1.0 */
+        (*ConfigSaveSection)("UI-Console");
 
     event_set_core_defaults();
 }
@@ -199,7 +247,7 @@ static void printUsage(const char *progname)
            "    --set (param-spec)    : set a configuration variable, format: ParamSection[ParamName]=Value\n"
            "    --core-compare-send   : use the Core Comparison debugging feature, in data sending mode\n"
            "    --core-compare-recv   : use the Core Comparison debugging feature, in data receiving mode\n"
-           "    --saveoptions         : save the given command-line options in configuration file for future\n"
+           "    --nosaveoptions       : do not save the given command-line options in configuration file\n"
            "    --verbose             : print lots of information\n"
            "    --help                : see this help message\n\n"
            "(plugin-spec):\n"
@@ -502,9 +550,9 @@ static m64p_error ParseCommandLineFinal(int argc, char **argv)
         {
             l_CoreCompareMode = 2;
         }
-        else if (strcmp(argv[i], "--saveoptions") == 0)
+        else if (strcmp(argv[i], "--nosaveoptions") == 0)
         {
-            l_SaveOptions = 1;
+            l_SaveOptions = 0;
         }
         else if (ArgsLeft == 0)
         {
@@ -684,13 +732,10 @@ int main(int argc, char *argv[])
         fprintf(stderr, "UI-Console: warning: couldn't set input callback, input won't work.\n");
     }
 
-    /* set up Frame Callback if --testshots is enabled */
-    if (l_TestShotList != NULL)
+    /* set up Frame Callback */
+    if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, FrameCallback) != M64ERR_SUCCESS)
     {
-        if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, FrameCallback) != M64ERR_SUCCESS)
-        {
-            fprintf(stderr, "UI-Console: warning: couldn't set frame callback, so --testshots won't work.\n");
-        }
+        fprintf(stderr, "UI-Console: warning: couldn't set frame callback, so --testshots won't work.\n");
     }
 
     /* run the game */
@@ -710,7 +755,7 @@ int main(int argc, char *argv[])
     /* close the ROM image */
     (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
 
-    /* save the configuration file again if --saveoptions was specified, to keep any updated parameters from the core/plugins */
+    /* save the configuration file again if --nosaveoptions was not specified, to keep any updated parameters from the core/plugins */
     if (l_SaveOptions)
         SaveConfigurationOptions();
 

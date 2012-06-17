@@ -26,6 +26,7 @@
 
 #include "lirc.h"
 #include "core_interface.h"
+#include "main.h"
 
 static struct lirc_config *g_config;
 static int g_lircfd = 0;
@@ -97,7 +98,7 @@ void lircCheckInput(void)
                 else if(strcmp(c, "VOL-") == 0)
                     volume_down();
                 else if(strcmp(c, "SCREENSHOT") == 0)
-                    take_screenshot();
+                    main_take_next_screenshot();
                 else if(strcmp(c, "SPEED+") == 0)
                     speed_delta(+5);
                 else if(strcmp(c, "SPEED-") == 0)

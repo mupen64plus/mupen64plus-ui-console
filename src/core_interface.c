@@ -46,6 +46,7 @@ int g_CoreAPIVersion;
 m64p_handle g_ConfigCore = NULL;
 m64p_handle g_ConfigVideo = NULL;
 m64p_handle g_ConfigUI = NULL;
+m64p_handle g_CoreEventsConfig = NULL;
 
 /* definitions of pointers to Core common functions */
 ptr_CoreErrorMessage    CoreErrorMessage = NULL;
@@ -63,6 +64,8 @@ ptr_CoreCheatEnabled    CoreCheatEnabled = NULL;
 /* definitions of pointers to Core config functions */
 ptr_ConfigListSections     ConfigListSections = NULL;
 ptr_ConfigOpenSection      ConfigOpenSection = NULL;
+ptr_ConfigDeleteSection    ConfigDeleteSection = NULL;
+ptr_ConfigSaveSection      ConfigSaveSection = NULL;
 ptr_ConfigListParameters   ConfigListParameters = NULL;
 ptr_ConfigSaveFile         ConfigSaveFile = NULL;
 ptr_ConfigSetParameter     ConfigSetParameter = NULL;
@@ -227,6 +230,8 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     /* get function pointers to the configuration functions */
     ConfigListSections = (ptr_ConfigListSections) osal_dynlib_getproc(CoreHandle, "ConfigListSections");
     ConfigOpenSection = (ptr_ConfigOpenSection) osal_dynlib_getproc(CoreHandle, "ConfigOpenSection");
+    ConfigDeleteSection = (ptr_ConfigDeleteSection) osal_dynlib_getproc(CoreHandle, "ConfigDeleteSection");
+    ConfigSaveSection = (ptr_ConfigSaveSection) osal_dynlib_getproc(CoreHandle, "ConfigSaveSection");
     ConfigListParameters = (ptr_ConfigListParameters) osal_dynlib_getproc(CoreHandle, "ConfigListParameters");
     ConfigSaveFile = (ptr_ConfigSaveFile) osal_dynlib_getproc(CoreHandle, "ConfigSaveFile");
     ConfigSetParameter = (ptr_ConfigSetParameter) osal_dynlib_getproc(CoreHandle, "ConfigSetParameter");
@@ -293,6 +298,8 @@ m64p_error DetachCoreLib(void)
 
     ConfigListSections = NULL;
     ConfigOpenSection = NULL;
+    ConfigDeleteSection = NULL;
+    ConfigSaveSection = NULL;
     ConfigListParameters = NULL;
     ConfigSetParameter = NULL;
     ConfigGetParameter = NULL;
@@ -363,6 +370,13 @@ m64p_error OpenConfigurationHandles(void)
     if (rval != M64ERR_SUCCESS)
     {
         fprintf(stderr, "Error: failed to open 'UI-Console' configuration section\n");
+        return rval;
+    }
+
+    rval = (*ConfigOpenSection)("CoreEvents", &g_CoreEventsConfig);
+    if (rval != M64ERR_SUCCESS)
+    {
+        fprintf(stderr, "Error: failed to open 'CoreEvents' configuration section\n");
         return rval;
     }
 
@@ -489,11 +503,6 @@ void send_key_down(unsigned short keysym, unsigned short keymod)
 void send_key_up(unsigned short keysym, unsigned short keymod)
 {
     M64P_ASSERT((*CoreDoCommand, M64CMD_SEND_SDL_KEYUP, compile_sdl_key(keysym, keymod), NULL));
-}
-
-void take_screenshot(void)
-{
-    TakeScreenshot(123); // TODO XXX get real frame number
 }
 
 void set_gameshark_button(int enable)

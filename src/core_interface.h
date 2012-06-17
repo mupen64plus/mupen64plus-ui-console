@@ -35,6 +35,7 @@ extern int g_CoreAPIVersion;
 extern m64p_handle g_ConfigCore;
 extern m64p_handle g_ConfigVideo;
 extern m64p_handle g_ConfigUI;
+extern m64p_handle g_CoreEventsConfig;
 
 /* declarations of Core library handle and pointers to common functions */
 extern m64p_dynlib_handle      CoreHandle;
@@ -53,6 +54,8 @@ extern ptr_CoreCheatEnabled    CoreCheatEnabled;
 /* declarations of pointers to Core config functions */
 extern ptr_ConfigListSections     ConfigListSections;
 extern ptr_ConfigOpenSection      ConfigOpenSection;
+extern ptr_ConfigDeleteSection    ConfigDeleteSection;
+extern ptr_ConfigSaveSection      ConfigSaveSection;
 extern ptr_ConfigListParameters   ConfigListParameters;
 extern ptr_ConfigSaveFile         ConfigSaveFile;
 extern ptr_ConfigSetParameter     ConfigSetParameter;
@@ -119,7 +122,6 @@ void speed_delta(int delta);
 void frame_advance(void);
 void send_key_down(unsigned short keysym, unsigned short keymod);
 void send_key_up(unsigned short keysym, unsigned short keymod);
-void take_screenshot(void);
 void set_gameshark_button(int enable);
 
 #endif /* #define CORE_INTERFACE_H */

@@ -22,10 +22,10 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+extern void main_take_next_screenshot(void);
+
 extern void DebugMessage(int level, const char *message, ...);
 extern void DebugCallback(void *Context, int level, const char *message);
-
-extern void main_take_next_screenshot(void);
 
 extern int  g_Verbose;
 

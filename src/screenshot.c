@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#include "main.h"
 #include "screenshot.h"
 #include "plugin.h"
 #include "version.h"
@@ -38,19 +39,19 @@
 
 static void mupen_png_error(png_structp png_write, const char *message)
 {
-    fprintf(stderr, "UI-console: PNG Error: %s\n", message);
+    DebugMessage(M64MSG_WARNING, "PNG Error while taking screenshot: %s", message);
 }
 
 static void mupen_png_warn(png_structp png_write, const char *message)
 {
-    fprintf(stderr, "UI-console: PNG Warning: %s\n", message);
+    DebugMessage(M64MSG_WARNING, "PNG Warning while taking screenshot: %s", message);
 }
 
 static void user_write_data(png_structp png_write, png_bytep data, png_size_t length)
 {
     FILE *fPtr = (FILE *) png_get_io_ptr(png_write);
     if (fwrite(data, 1, length, fPtr) != length)
-        fprintf(stderr, "UI-console: Failed to write %zi bytes to screenshot file.\n", length);
+            DebugMessage(M64MSG_WARNING, "Failed to write %zi bytes to screenshot file.", length);
 }
 
 static void user_flush_data(png_structp png_write)
@@ -75,26 +76,26 @@ static void SaveRGBBufferToFile(char *filename, unsigned char *buf, int width, i
     png_write = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, mupen_png_error, mupen_png_warn);
     if (!png_write)
     {
-        fprintf(stderr, "UI-console: Error creating PNG write struct.\n");
+        DebugMessage(M64MSG_WARNING, "Error creating PNG write struct while taking screenshot.");
         goto cleanup;
     }
     png_info = png_create_info_struct(png_write);
     if (!png_info)
     {
-        fprintf(stderr, "UI-console: Error creating PNG info struct.\n");
+        DebugMessage(M64MSG_WARNING, "Error creating PNG info struct while taking screenshot.");
         goto cleanup;
     }
     // Set the jumpback
     if (setjmp(png_jmpbuf(png_write)))
     {
-        fprintf(stderr, "UI-console: Error calling setjmp()\n");
+        DebugMessage(M64MSG_WARNING, "Error calling setjmp() while taking screenshot.");
         goto cleanup;
     }
     // open the file to write
     savefile = fopen(filename, "wb");
     if (savefile == NULL)
     {
-        fprintf(stderr, "UI-console: Error opening '%s' to save screenshot.\n", filename);
+        DebugMessage(M64MSG_WARNING, "Error opening '%s' to save screenshot.", filename);
         goto cleanup;
     }
 
@@ -109,7 +110,7 @@ static void SaveRGBBufferToFile(char *filename, unsigned char *buf, int width, i
     row_pointers = (png_byte **) malloc(height * sizeof(png_bytep));
     if (row_pointers == NULL)
     {
-        fprintf(stderr, "UI-console: Error allocating PNG row pointers.\n");
+        DebugMessage(M64MSG_WARNING, "Error allocating PNG row pointers while taking screenshot.");
         goto cleanup;
     }
 
@@ -133,7 +134,6 @@ static int CurrentShotIndex = 0;
 
 char *GetNextScreenshotFileName()
 {
-    // TODO XXX check alloc failure
     int i;
     m64p_rom_header hdr;
     const char *SshotDir;
@@ -158,12 +158,22 @@ char *GetNextScreenshotFileName()
     {
         const char *UserDataPath = ConfigGetUserDataPath();
         BaseDir = (char *) malloc(strlen(UserDataPath) + strlen("screenshot/") + 1);
+        if (BaseDir == NULL)
+        {
+            DebugMessage(M64MSG_WARNING, "Error allocating base directory while taking screenshot.");
+            return NULL;
+        }
         sprintf(BaseDir, "%sscreenshot%c", UserDataPath, OSAL_DIR_SEPARATOR);
     }
     else
     {
         size_t len = strlen(SshotDir);
         BaseDir = (char *) malloc(len + 1 + 1);
+        if (BaseDir == NULL)
+        {
+            DebugMessage(M64MSG_WARNING, "Error allocating base directory while taking screenshot.");
+            return NULL;
+        }
         strcpy(BaseDir, SshotDir);
 
         // make sure there is a slash on the end of the pathname
@@ -178,6 +188,12 @@ char *GetNextScreenshotFileName()
 
     // look for an unused screenshot filename
     filename = (char *) malloc(strlen(BaseDir) + 20 + 1 + 3 + 4 + 1);
+    if (BaseDir == NULL)
+    {
+        DebugMessage(M64MSG_WARNING, "Error allocating file path while taking screenshot.");
+        return NULL;
+    }
+
     for (; CurrentShotIndex < 1000; CurrentShotIndex++) {
         sprintf(filename, "%s%.20s-%03i.png", BaseDir, hdr.Name, CurrentShotIndex);
         file = fopen(filename, "r");
@@ -188,7 +204,7 @@ char *GetNextScreenshotFileName()
 
     if (CurrentShotIndex >= 1000)
     {
-        fprintf(stderr, "UI-console: Can't save screenshot; folder already contains 1000 screenshots for this ROM.\n");
+        DebugMessage(M64MSG_WARNING, "Can't save screenshot; folder already contains 1000 screenshots for this ROM.");
         return NULL;
     }
 
@@ -221,7 +237,7 @@ void TakeScreenshot(int iFrameNumber)
     if ((*CoreDoCommand)(M64CMD_GET_SCREEN_WIDTH, 0, &width) != M64ERR_SUCCESS ||
         (*CoreDoCommand)(M64CMD_GET_SCREEN_HEIGHT, 0, &height) != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "UI-console: Can't get the dimensions of the screenshot.\n");
+        DebugMessage(M64MSG_WARNING, "Can't get the dimensions of the screenshot.");
         goto cleanup;
     }
 
@@ -229,14 +245,14 @@ void TakeScreenshot(int iFrameNumber)
     pucFrame = (unsigned char *) malloc(width * height * 3);
     if (pucFrame == NULL)
     {
-        fprintf(stderr, "UI-console: Can't allocate memory for the screenshot.\n");
+        DebugMessage(M64MSG_WARNING, "Can't allocate memory for the screenshot.");
         goto cleanup;
     }
 
     // grab the back image from OpenGL by calling the video plugin
     if ((*CoreDoCommand)(M64CMD_READ_SCREEN, 0, pucFrame) != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "UI-console: Can't retrieve the emulator screen.\n");
+        DebugMessage(M64MSG_WARNING, "Can't retrieve the emulator screen for the screenshot.");
         goto cleanup;
     }
 
@@ -244,7 +260,7 @@ void TakeScreenshot(int iFrameNumber)
     SaveRGBBufferToFile(filename, pucFrame, width, height, width * 3);
 
     // print message -- this allows developers to capture frames and use them in the regression test
-    printf("Captured screenshot for frame %i.\n", iFrameNumber); // TODO XXX print on OSD
+    DebugMessage(M64MSG_STATUS, "Captured screenshot for frame %i.", iFrameNumber); // TODO XXX print on OSD
 
     return;
 

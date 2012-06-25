@@ -35,6 +35,7 @@
 #include "osal_preproc.h"
 #include "osal_dynamiclib.h"
 
+#include "main.h"
 #include "version.h"
 #include "core_interface.h"
 #include "screenshot.h"
@@ -148,7 +149,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     /* if we haven't found a good core library by now, then we're screwed */
     if (rval != M64ERR_SUCCESS || CoreHandle == NULL)
     {
-        fprintf(stderr, "AttachCoreLib() Error: failed to find Mupen64Plus Core library\n");
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: failed to find Mupen64Plus Core library");
         CoreHandle = NULL;
         return M64ERR_INPUT_NOT_FOUND;
     }
@@ -158,7 +159,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     CoreVersionFunc = (ptr_PluginGetVersion) osal_dynlib_getproc(CoreHandle, "PluginGetVersion");
     if (CoreVersionFunc == NULL)
     {
-        fprintf(stderr, "AttachCoreLib() Error: Shared library '%s' invalid; no PluginGetVersion() function found.\n", CoreLibFilepath);
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' invalid; no PluginGetVersion() function found.", CoreLibFilepath);
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;
         return M64ERR_INPUT_INVALID;
@@ -169,12 +170,12 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     const char *CoreName = NULL;
     (*CoreVersionFunc)(&PluginType, &CoreVersion, &g_CoreAPIVersion, &CoreName, &g_CoreCapabilities);
     if (PluginType != M64PLUGIN_CORE)
-        fprintf(stderr, "AttachCoreLib() Error: Shared library '%s' invalid; this is not the emulator core.\n", CoreLibFilepath);
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' invalid; this is not the emulator core.", CoreLibFilepath);
     else if (CoreVersion < MINIMUM_CORE_VERSION)
-        fprintf(stderr, "AttachCoreLib() Error: Shared library '%s' incompatible; core version %i.%i.%i is below minimum supported %i.%i.%i\n",
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' incompatible; core version %i.%i.%i is below minimum supported %i.%i.%i",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(CoreVersion), VERSION_PRINTF_SPLIT(MINIMUM_CORE_VERSION));
     else if ((g_CoreAPIVersion & 0xffff0000) != (CORE_API_VERSION & 0xffff0000))
-        fprintf(stderr, "AttachCoreLib() Error: Shared library '%s' incompatible; core API major version %i.%i.%i doesn't match with this application (%i.%i.%i)\n",
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Shared library '%s' incompatible; core API major version %i.%i.%i doesn't match with this application (%i.%i.%i)",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(g_CoreAPIVersion), VERSION_PRINTF_SPLIT(CORE_API_VERSION));
     else
         Compatible = 1;
@@ -191,7 +192,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     CoreAPIVersionFunc = (ptr_CoreGetAPIVersions) osal_dynlib_getproc(CoreHandle, "CoreGetAPIVersions");
     if (CoreAPIVersionFunc == NULL)
     {
-        fprintf(stderr, "AttachCoreLib() Error: Library '%s' broken; no CoreAPIVersionFunc() function found.\n", CoreLibFilepath);
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Library '%s' broken; no CoreAPIVersionFunc() function found.", CoreLibFilepath);
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;
         return M64ERR_INPUT_INVALID;
@@ -200,7 +201,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
     if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000))
     {
-        fprintf(stderr, "AttachCoreLib() Error: Emulator core '%s' incompatible; Config API major version %i.%i.%i doesn't match application: %i.%i.%i\n",
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Emulator core '%s' incompatible; Config API major version %i.%i.%i doesn't match application: %i.%i.%i",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;
@@ -208,13 +209,13 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     }
 
     /* print some information about the core library */
-    printf("UI-console: attached to core library '%s' version %i.%i.%i\n", CoreName, VERSION_PRINTF_SPLIT(CoreVersion));
+    DebugMessage(M64MSG_INFO, "attached to core library '%s' version %i.%i.%i", CoreName, VERSION_PRINTF_SPLIT(CoreVersion));
     if (g_CoreCapabilities & M64CAPS_DYNAREC)
-        printf("            Includes support for Dynamic Recompiler.\n");
+        DebugMessage(M64MSG_INFO, "            Includes support for Dynamic Recompiler.");
     if (g_CoreCapabilities & M64CAPS_DEBUGGER)
-        printf("            Includes support for MIPS r4300 Debugger.\n");
+        DebugMessage(M64MSG_INFO, "            Includes support for MIPS r4300 Debugger.");
     if (g_CoreCapabilities & M64CAPS_CORE_COMPARE)
-        printf("            Includes support for r4300 Core Comparison.\n");
+        DebugMessage(M64MSG_INFO, "            Includes support for r4300 Core Comparison.");
 
     /* get function pointers to the common and front-end functions */
     CoreErrorMessage = (ptr_CoreErrorMessage) osal_dynlib_getproc(CoreHandle, "CoreErrorMessage");
@@ -352,31 +353,31 @@ m64p_error OpenConfigurationHandles(void)
     m64p_error rval;
 
     /* Open Configuration sections for core library and console User Interface */
-    rval = (*ConfigOpenSection)("Core", &g_ConfigCore);
+    rval = (*ConfigOpenSection)("Core", &l_ConfigCore);
     if (rval != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "Error: failed to open 'Core' configuration section\n");
+        DebugMessage(M64MSG_ERROR, "failed to open 'Core' configuration section");
         return rval;
     }
 
-    rval = (*ConfigOpenSection)("Video-General", &g_ConfigVideo);
+    rval = (*ConfigOpenSection)("Video-General", &l_ConfigVideo);
     if (rval != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "Error: failed to open 'Video-General' configuration section\n");
+        DebugMessage(M64MSG_ERROR, "failed to open 'Video-General' configuration section");
         return rval;
     }
 
-    rval = (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
+    rval = (*ConfigOpenSection)("UI-Console", &l_ConfigUI);
     if (rval != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "Error: failed to open 'UI-Console' configuration section\n");
+        DebugMessage(M64MSG_ERROR, "failed to open 'UI-Console' configuration section");
         return rval;
     }
 
     rval = (*ConfigOpenSection)("CoreEvents", &g_CoreEventsConfig);
     if (rval != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "Error: failed to open 'CoreEvents' configuration section\n");
+        DebugMessage(M64MSG_ERROR, "failed to open 'CoreEvents' configuration section");
         return rval;
     }
 
@@ -386,7 +387,7 @@ m64p_error OpenConfigurationHandles(void)
 #define M64P_ASSERT(x) \
 	if ((x) != M64ERR_SUCCESS) \
 	{ \
-		fprintf(stderr, "Error: Command failed: %s", #x); \
+		DebugMessage(M64MSG_ERROR, "Command failed: %s", #x); \
 		return; \
 	}
 

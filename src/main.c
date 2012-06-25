@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 // The mac version of SDL requires inclusion of SDL_main in the executable
 #ifdef __APPLE__
@@ -74,20 +75,6 @@ static int   l_CoreCompareMode = 0;      // 0 = disable, 1 = send, 2 = receive
 static eCheatMode l_CheatMode = CHEAT_DISABLE;
 static char      *l_CheatNumList = NULL;
 
-// TODO XXX integrate or remove
-void DebugMessage(int level, const char *message, ...)
-{
-  char msgbuf[1024];
-  va_list args;
-
-  va_start(args, message);
-  vsprintf(msgbuf, message, args);
-
-  printf("DebugMessage: %s\n", msgbuf);
-
-  va_end(args);
-}
-
 void main_take_next_screenshot(void)
 {
     l_TakeScreenshot = 1;
@@ -97,17 +84,36 @@ void main_take_next_screenshot(void)
  *  Callback functions from the core
  */
 
+void DebugMessage(int level, const char *message, ...)
+{
+  char msgbuf[1024];
+  va_list args;
+
+  va_start(args, message);
+  vsnprintf(msgbuf, 1024, message, args);
+
+  DebugCallback("UI-Console", level, msgbuf);
+
+  va_end(args);
+}
+
 void DebugCallback(void *Context, int level, const char *message)
 {
-    if (level <= 1)
+    if (level == M64MSG_ERROR)
         printf("%s Error: %s\n", (const char *) Context, message);
-    else if (level == 2)
+    else if (level == M64MSG_WARNING)
         printf("%s Warning: %s\n", (const char *) Context, message);
-    else if (level == 3 || (level == 5 && g_Verbose))
+    else if (level == M64MSG_INFO)
         printf("%s: %s\n", (const char *) Context, message);
-    else if (level == 4)
+    else if (level == M64MSG_STATUS)
         printf("%s Status: %s\n", (const char *) Context, message);
-    /* ignore the verbose info for now */
+    else if (level == M64MSG_VERBOSE)
+    {
+        if (g_Verbose)
+            printf("%s: %s\n", (const char *) Context, message);
+    }
+    else
+        printf("%s Unknown: %s\n", (const char *) Context, message);
 }
 
 static void FrameCallback(unsigned int FrameIndex)
@@ -159,14 +165,14 @@ void SetConfigurationDefaults(void)
 
     if ((*ConfigGetParameter)(g_ConfigUI, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "Warning: No version number in 'UI-Console' config section. Setting defaults.\n");
+        DebugMessage(M64MSG_WARNING, "No version number in 'UI-Console' config section. Setting defaults.");
         (*ConfigDeleteSection)("UI-Console");
         (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
         bSaveConfig = 1;
     }
     else if (((int) fConfigParamsVersion) != ((int) CONFIG_PARAM_VERSION))
     {
-        fprintf(stderr, "Warning: Incompatible version %.2f in 'UI-Console' config section: current is %.2f. Setting defaults.\n", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
+        DebugMessage(M64MSG_WARNING, "Incompatible version %.2f in 'UI-Console' config section: current is %.2f. Setting defaults.", fConfigParamsVersion, (float) CONFIG_PARAM_VERSION);
         (*ConfigDeleteSection)("UI-Console");
         (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
         bSaveConfig = 1;
@@ -176,7 +182,7 @@ void SetConfigurationDefaults(void)
         /* handle upgrades */
         float fVersion = CONFIG_PARAM_VERSION;
         ConfigSetParameter(g_ConfigUI, "Version", M64TYPE_FLOAT, &fVersion);
-        fprintf(stderr, "Info: Updating parameter set version in 'UI-Console' config section to %.2f\n", fVersion);
+        DebugMessage(M64MSG_INFO, "Updating parameter set version in 'UI-Console' config section to %.2f", fVersion);
         bSaveConfig = 1;
     }
 
@@ -273,7 +279,7 @@ static int SetConfigParameter(const char *ParamSpec)
 
     if (ParamSpec == NULL)
     {
-        fprintf(stderr, "UI-Console Error: ParamSpec is NULL in SetConfigParameter()\n");
+        DebugMessage(M64MSG_ERROR, "ParamSpec is NULL in SetConfigParameter()");
         return 1;
     }
 
@@ -281,7 +287,7 @@ static int SetConfigParameter(const char *ParamSpec)
     ParsedString = (char *) malloc(strlen(ParamSpec) + 1);
     if (ParsedString == NULL)
     {
-        fprintf(stderr, "UI-Console Error: SetConfigParameter() couldn't allocate memory for temporary string.\n");
+        DebugMessage(M64MSG_ERROR, "SetConfigParameter() couldn't allocate memory for temporary string.");
         return 2;
     }
     strcpy(ParsedString, ParamSpec);
@@ -299,7 +305,7 @@ static int SetConfigParameter(const char *ParamSpec)
     }
     if (VarName == NULL || VarValue == NULL || *VarValue != '=')
     {
-        fprintf(stderr, "UI-Console Error: invalid (param-spec) '%s'\n", ParamSpec);
+        DebugMessage(M64MSG_ERROR, "invalid (param-spec) '%s'", ParamSpec);
         free(ParsedString);
         return 3;
     }
@@ -309,7 +315,7 @@ static int SetConfigParameter(const char *ParamSpec)
     rval = (*ConfigOpenSection)(ParsedString, &ConfigSection);
     if (rval != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "UI-Console Error: SetConfigParameter failed to open config section '%s'\n", ParsedString);
+        DebugMessage(M64MSG_ERROR, "SetConfigParameter failed to open config section '%s'", ParsedString);
         free(ParsedString);
         return 4;
     }
@@ -335,7 +341,7 @@ static int SetConfigParameter(const char *ParamSpec)
                 ConfigSetParameter(ConfigSection, VarName, M64TYPE_STRING, VarValue);
                 break;
             default:
-                fprintf(stderr, "UI-Console Error: invalid VarType in SetConfigParameter()\n");
+                DebugMessage(M64MSG_ERROR, "invalid VarType in SetConfigParameter()");
                 return 5;
         }
     }
@@ -447,11 +453,11 @@ static m64p_error ParseCommandLineFinal(int argc, char **argv)
         {
             int EnableSpeedLimit = 0;
             if (g_CoreAPIVersion < 0x020001)
-                fprintf(stderr, "Warning: core library doesn't support --nospeedlimit\n");
+                DebugMessage(M64MSG_WARNING, "core library doesn't support --nospeedlimit");
             else
             {
                 if ((*CoreDoCommand)(M64CMD_CORE_STATE_SET, M64CORE_SPEED_LIMITER, &EnableSpeedLimit) != M64ERR_SUCCESS)
-                    fprintf(stderr, "Error: core gave error while setting --nospeedlimit option\n");
+                    DebugMessage(M64MSG_ERROR, "core gave error while setting --nospeedlimit option");
             }
         }
         else if ((strcmp(argv[i], "--corelib") == 0 || strcmp(argv[i], "--configdir") == 0 ||
@@ -465,7 +471,7 @@ static m64p_error ParseCommandLineFinal(int argc, char **argv)
             int xres, yres;
             i++;
             if (sscanf(res, "%ix%i", &xres, &yres) != 2)
-                fprintf(stderr, "Warning: couldn't parse resolution '%s'\n", res);
+                DebugMessage(M64MSG_WARNING, "couldn't parse resolution '%s'", res);
             else
             {
                 (*ConfigSetParameter)(g_ConfigVideo, "ScreenWidth", M64TYPE_INT, &xres);
@@ -521,12 +527,12 @@ static m64p_error ParseCommandLineFinal(int argc, char **argv)
             i++;
             if (emumode < 0 || emumode > 2)
             {
-                fprintf(stderr, "Warning: invalid --emumode value '%i'\n", emumode);
+                DebugMessage(M64MSG_WARNING, "invalid --emumode value '%i'", emumode);
                 continue;
             }
             if (emumode == 2 && !(g_CoreCapabilities & M64CAPS_DYNAREC))
             {
-                fprintf(stderr, "Warning: Emulator core doesn't support Dynamic Recompiler.\n");
+                DebugMessage(M64MSG_WARNING, "Emulator core doesn't support Dynamic Recompiler.");
                 emumode = 1;
             }
             (*ConfigSetParameter)(g_ConfigCore, "R4300Emulator", M64TYPE_INT, &emumode);
@@ -566,13 +572,13 @@ static m64p_error ParseCommandLineFinal(int argc, char **argv)
         }
         else
         {
-            fprintf(stderr, "Warning: unrecognized command-line parameter '%s'\n", argv[i]);
+            DebugMessage(M64MSG_WARNING, "unrecognized command-line parameter '%s'", argv[i]);
         }
         /* continue argv loop */
     }
 
     /* missing ROM filepath */
-    fprintf(stderr, "Error: no ROM filepath given\n");
+    DebugMessage(M64MSG_ERROR, "no ROM filepath given");
     return M64ERR_INPUT_INVALID;
 }
 
@@ -603,7 +609,7 @@ int main(int argc, char *argv[])
     m64p_error rval = (*CoreStartup)(CORE_API_VERSION, l_ConfigDirPath, l_DataDirPath, "Core", DebugCallback, NULL, NULL);
     if (rval != M64ERR_SUCCESS)
     {
-        printf("UI-console: error starting Mupen64Plus core library.\n");
+        DebugMessage(M64MSG_ERROR, "couldn't start Mupen64Plus core library.");
         DetachCoreLib();
         return 3;
     }
@@ -631,7 +637,7 @@ int main(int argc, char *argv[])
     /* Handle the core comparison feature */
     if (l_CoreCompareMode != 0 && !(g_CoreCapabilities & M64CAPS_CORE_COMPARE))
     {
-        printf("UI-console: can't use --core-compare feature with this Mupen64Plus core library.\n");
+        DebugMessage(M64MSG_ERROR, "can't use --core-compare feature with this Mupen64Plus core library.");
         DetachCoreLib();
         return 6;
     }
@@ -645,7 +651,7 @@ int main(int argc, char *argv[])
     FILE *fPtr = fopen(l_ROMFilepath, "rb");
     if (fPtr == NULL)
     {
-        fprintf(stderr, "Error: couldn't open ROM file '%s' for reading.\n", l_ROMFilepath);
+        DebugMessage(M64MSG_ERROR, "couldn't open ROM file '%s' for reading.", l_ROMFilepath);
         (*CoreShutdown)();
         DetachCoreLib();
         return 7;
@@ -659,7 +665,7 @@ int main(int argc, char *argv[])
     unsigned char *ROM_buffer = (unsigned char *) malloc(romlength);
     if (ROM_buffer == NULL)
     {
-        fprintf(stderr, "Error: couldn't allocate %li-byte buffer for ROM image file '%s'.\n", romlength, l_ROMFilepath);
+        DebugMessage(M64MSG_ERROR, "couldn't allocate %li-byte buffer for ROM image file '%s'.", romlength, l_ROMFilepath);
         fclose(fPtr);
         (*CoreShutdown)();
         DetachCoreLib();
@@ -667,7 +673,7 @@ int main(int argc, char *argv[])
     }
     else if (fread(ROM_buffer, 1, romlength, fPtr) != romlength)
     {
-        fprintf(stderr, "Error: couldn't read %li bytes from ROM image file '%s'.\n", romlength, l_ROMFilepath);
+        DebugMessage(M64MSG_ERROR, "couldn't read %li bytes from ROM image file '%s'.", romlength, l_ROMFilepath);
         free(ROM_buffer);
         fclose(fPtr);
         (*CoreShutdown)();
@@ -679,7 +685,7 @@ int main(int argc, char *argv[])
     /* Try to load the ROM image into the core */
     if ((*CoreDoCommand)(M64CMD_ROM_OPEN, (int) romlength, ROM_buffer) != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "Error: core failed to open ROM image file '%s'.\n", l_ROMFilepath);
+        DebugMessage(M64MSG_ERROR, "core failed to open ROM image file '%s'.", l_ROMFilepath);
         free(ROM_buffer);
         (*CoreShutdown)();
         DetachCoreLib();
@@ -714,7 +720,7 @@ int main(int argc, char *argv[])
     {
         if ((*CoreAttachPlugin)(g_PluginMap[i].type, g_PluginMap[i].handle) != M64ERR_SUCCESS)
         {
-            fprintf(stderr, "UI-Console: error from core while attaching %s plugin.\n", g_PluginMap[i].name);
+            DebugMessage(M64MSG_ERROR, "core error while attaching %s plugin.", g_PluginMap[i].name);
             (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
             (*CoreShutdown)();
             DetachCoreLib();
@@ -729,13 +735,13 @@ int main(int argc, char *argv[])
 #endif
     if ((*CoreDoCommand)(M64CMD_SET_INPUT_CALLBACK, 0, InputCallback) != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "UI-Console: warning: couldn't set input callback, input won't work.\n");
+        DebugMessage(M64MSG_WARNING, "couldn't set input callback, input won't work.");
     }
 
     /* set up Frame Callback */
     if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, FrameCallback) != M64ERR_SUCCESS)
     {
-        fprintf(stderr, "UI-Console: warning: couldn't set frame callback, so --testshots won't work.\n");
+        DebugMessage(M64MSG_WARNING, "couldn't set frame callback, so --testshots won't work.");
     }
 
     /* run the game */

@@ -353,21 +353,21 @@ m64p_error OpenConfigurationHandles(void)
     m64p_error rval;
 
     /* Open Configuration sections for core library and console User Interface */
-    rval = (*ConfigOpenSection)("Core", &l_ConfigCore);
+    rval = (*ConfigOpenSection)("Core", &g_ConfigCore);
     if (rval != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_ERROR, "failed to open 'Core' configuration section");
         return rval;
     }
 
-    rval = (*ConfigOpenSection)("Video-General", &l_ConfigVideo);
+    rval = (*ConfigOpenSection)("Video-General", &g_ConfigVideo);
     if (rval != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_ERROR, "failed to open 'Video-General' configuration section");
         return rval;
     }
 
-    rval = (*ConfigOpenSection)("UI-Console", &l_ConfigUI);
+    rval = (*ConfigOpenSection)("UI-Console", &g_ConfigUI);
     if (rval != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_ERROR, "failed to open 'UI-Console' configuration section");

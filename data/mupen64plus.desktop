@@ -9,3 +9,4 @@ Icon=mupen64plus
 MimeType=application/x-n64-rom;
 Categories=Game;Emulator;
 Keywords=Emulator;Nintendo64;Mupen64plus;
+NoDisplay=true

@@ -80,6 +80,9 @@ void *debugger_loop(void *arg) {
             cur_run_state = 2;
             if (debugger_set_run_state(cur_run_state))
                 printf("Error setting run_state: run\n");
+            else {
+                debugger_step(); // Hack to kick-start the emulation.
+            }
         }
         else if (strcmp(input, "pause") == 0) {
             cur_run_state = 0;

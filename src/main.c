@@ -749,6 +749,8 @@ int main(int argc, char *argv[])
     if (debugger_setup_callbacks())
     {
         DebugMessage(M64MSG_ERROR, "couldn't setup debugger callbacks.");
+        (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
+        (*CoreShutdown)();
         DetachCoreLib();
         return -1;
     }

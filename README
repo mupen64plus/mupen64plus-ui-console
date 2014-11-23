@@ -1,3 +1,49 @@
+mupen64plus-ui-console-debugger
+===============================
+
+This is a WIP modification to the console interface of Mupen64plus that adds
+simple debugging features.
+
+Setup
+=====
+
+The existing Mupen64plus build system can be used with only a few changes. Be
+sure to build the mupen64plus-core with the DEBUGGER flag set.
+
+The simplest way is to use the m64p_get.sh script to set up the environment,
+and then drop this repository in place of the original ui-console. Then
+modify the m64p_build.sh script to enable a debugger build.
+
+Running
+=======
+
+Once built, the original command line parameters should all work. You must set
+the EnableDebugger config setting to True. The emulator mode should be set
+to an interpreter, as the dynarec seems to cause issues when interacting with
+the debugging API. This can be done with the R4300Emulator config setting or
+with the --emumode flag.
+
+Usage
+=====
+
+Once the emulator boots, it will be paused by default. You will be presented
+with a prompt as follows:
+
+(dbg) 
+
+The following commands can be entered:
+
+run
+  Unpauses the game.
+
+pause
+  Pauses the game.
+
+step <num-steps>
+  When paused, instructs the emulator to make a single step, or a series of
+  steps if num-steps is provided.
+
+
 ===============================================================================
 -------------------------------------------------------------------------------
 Mupen64plus-ui-console README                                              v2.0

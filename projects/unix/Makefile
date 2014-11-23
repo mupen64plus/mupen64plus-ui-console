@@ -18,7 +18,7 @@
 # *   Free Software Foundation, Inc.,                                       *
 # *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-# Makefile for Mupen64plus-ui-console
+# Makefile for Mupen64plus-ui-console-debugger
 
 # detect operation system
 UNAME ?= $(shell uname -s)
@@ -248,6 +248,7 @@ endif
 
 # list of source files to compile
 SOURCE = \
+	$(SRCDIR)/debugger.c \
 	$(SRCDIR)/cheat.c \
 	$(SRCDIR)/compare_core.c \
 	$(SRCDIR)/core_interface.c \
@@ -273,7 +274,7 @@ $(shell $(MKDIR) $(OBJDIRS))
 TARGET = mupen64plus$(POSTFIX)$(EXEEXT)
 
 targets:
-	@echo "Mupen64Plus-ui-console makefile."
+	@echo "Mupen64Plus-ui-console-debugger makefile."
 	@echo "  Targets:"
 	@echo "    all            == Build Mupen64Plus console front-end application"
 	@echo "    clean          == remove object files and build products"

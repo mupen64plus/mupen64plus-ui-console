@@ -31,7 +31,9 @@
 #include <stdarg.h>
 
 #include <SDL_main.h>
+#include <pthread.h>
 
+#include "debugger.h"
 #include "cheat.h"
 #include "main.h"
 #include "plugin.h"
@@ -742,6 +744,19 @@ int main(int argc, char *argv[])
             DebugMessage(M64MSG_WARNING, "couldn't set frame callback, so --testshots won't work.");
         }
     }
+
+    /* Setup debugger callbacks */
+    if (debugger_setup_callbacks())
+    {
+        DebugMessage(M64MSG_ERROR, "couldn't setup debugger callbacks.");
+        DetachCoreLib();
+        return -1;
+    }
+    printf("Setup debugger callbacks.\n");
+
+    /* Fork the debugger input thread. */
+    pthread_t debug_loop;
+    pthread_create(&debug_loop, NULL, debugger_loop, NULL);
 
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);

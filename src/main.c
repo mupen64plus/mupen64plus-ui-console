@@ -54,6 +54,7 @@ static m64p_handle l_ConfigUI = NULL;
 static const char *l_CoreLibPath = NULL;
 static const char *l_ConfigDirPath = NULL;
 static const char *l_ROMFilepath = NULL;       // filepath of ROM to load & run at startup
+static const char *l_SaveStatePath = NULL;     // save state to load at startup
 
 #if defined(SHAREDIR)
   static const char *l_DataDirPath = SHAREDIR;
@@ -140,6 +141,20 @@ static void FrameCallback(unsigned int FrameIndex)
             (*CoreDoCommand)(M64CMD_STOP, 0, NULL);  /* tell the core to shut down ASAP */
             free(l_TestShotList);
             l_TestShotList = NULL;
+        }
+    }
+}
+
+static void LoadSaveStateCallback(unsigned int FrameIndex)
+{
+    if (l_SaveStatePath != NULL)
+    {
+        if (FrameIndex == 0 ) // this avoid to load the savestate at each frame
+        {
+            if ((*CoreDoCommand)(M64CMD_STATE_LOAD, 0, (void *) l_SaveStatePath) != M64ERR_SUCCESS)
+            {
+                DebugMessage(M64MSG_WARNING, "couldn't load state, rom will run normally.");
+            }
         }
     }
 }
@@ -242,39 +257,40 @@ static void printUsage(const char *progname)
     printf("Usage: %s [parameters] [romfile]\n"
            "\n"
            "Parameters:\n"
-           "    --noosd               : disable onscreen display\n"
-           "    --osd                 : enable onscreen display\n"
-           "    --fullscreen          : use fullscreen display mode\n"
-           "    --windowed            : use windowed display mode\n"
-           "    --resolution (res)    : display resolution (640x480, 800x600, 1024x768, etc)\n"
-           "    --nospeedlimit        : disable core speed limiter (should be used with dummy audio plugin)\n"
-           "    --cheats (cheat-spec) : enable or list cheat codes for the given rom file\n"
-           "    --corelib (filepath)  : use core library (filepath) (can be only filename or full path)\n"
-           "    --configdir (dir)     : force configation directory to (dir); should contain mupen64plus.cfg\n"
-           "    --datadir (dir)       : search for shared data files (.ini files, languages, etc) in (dir)\n"
-           "    --plugindir (dir)     : search for plugins in (dir)\n"
-           "    --sshotdir (dir)      : set screenshot directory to (dir)\n"
-           "    --gfx (plugin-spec)   : use gfx plugin given by (plugin-spec)\n"
-           "    --audio (plugin-spec) : use audio plugin given by (plugin-spec)\n"
-           "    --input (plugin-spec) : use input plugin given by (plugin-spec)\n"
-           "    --rsp (plugin-spec)   : use rsp plugin given by (plugin-spec)\n"
-           "    --emumode (mode)      : set emu mode to: 0=Pure Interpreter 1=Interpreter 2=DynaRec\n"
-           "    --testshots (list)    : take screenshots at frames given in comma-separated (list), then quit\n"
-           "    --set (param-spec)    : set a configuration variable, format: ParamSection[ParamName]=Value\n"
-           "    --core-compare-send   : use the Core Comparison debugging feature, in data sending mode\n"
-           "    --core-compare-recv   : use the Core Comparison debugging feature, in data receiving mode\n"
-           "    --nosaveoptions       : do not save the given command-line options in configuration file\n"
-           "    --verbose             : print lots of information\n"
-           "    --help                : see this help message\n\n"
+           "    --noosd                : disable onscreen display\n"
+           "    --osd                  : enable onscreen display\n"
+           "    --fullscreen           : use fullscreen display mode\n"
+           "    --windowed             : use windowed display mode\n"
+           "    --resolution (res)     : display resolution (640x480, 800x600, 1024x768, etc)\n"
+           "    --nospeedlimit         : disable core speed limiter (should be used with dummy audio plugin)\n"
+           "    --cheats (cheat-spec)  : enable or list cheat codes for the given rom file\n"
+           "    --corelib (filepath)   : use core library (filepath) (can be only filename or full path)\n"
+           "    --configdir (dir)      : force configation directory to (dir); should contain mupen64plus.cfg\n"
+           "    --datadir (dir)        : search for shared data files (.ini files, languages, etc) in (dir)\n"
+           "    --plugindir (dir)      : search for plugins in (dir)\n"
+           "    --sshotdir (dir)       : set screenshot directory to (dir)\n"
+           "    --gfx (plugin-spec)    : use gfx plugin given by (plugin-spec)\n"
+           "    --audio (plugin-spec)  : use audio plugin given by (plugin-spec)\n"
+           "    --input (plugin-spec)  : use input plugin given by (plugin-spec)\n"
+           "    --rsp (plugin-spec)    : use rsp plugin given by (plugin-spec)\n"
+           "    --emumode (mode)       : set emu mode to: 0=Pure Interpreter 1=Interpreter 2=DynaRec\n"
+           "    --savestate (filepath) : savestate loaded at startup\n"
+           "    --testshots (list)     : take screenshots at frames given in comma-separated (list), then quit\n"
+           "    --set (param-spec)     : set a configuration variable, format: ParamSection[ParamName]=Value\n"
+           "    --core-compare-send    : use the Core Comparison debugging feature, in data sending mode\n"
+           "    --core-compare-recv    : use the Core Comparison debugging feature, in data receiving mode\n"
+           "    --nosaveoptions        : do not save the given command-line options in configuration file\n"
+           "    --verbose              : print lots of information\n"
+           "    --help                 : see this help message\n\n"
            "(plugin-spec):\n"
-           "    (pluginname)          : filename (without path) of plugin to find in plugin directory\n"
-           "    (pluginpath)          : full path and filename of plugin\n"
-           "    'dummy'               : use dummy plugin\n\n"
+           "    (pluginname)           : filename (without path) of plugin to find in plugin directory\n"
+           "    (pluginpath)           : full path and filename of plugin\n"
+           "    'dummy'                : use dummy plugin\n\n"
            "(cheat-spec):\n"
-           "    'list'                : show all of the available cheat codes\n"
-           "    'all'                 : enable all of the available cheat codes\n"
-           "    (codelist)            : a comma-separated list of cheat code numbers to enable,\n"
-           "                            with dashes to use code variables (ex 1-2 to use cheat 1 option 2)\n"
+           "    'list'                 : show all of the available cheat codes\n"
+           "    'all'                  : enable all of the available cheat codes\n"
+           "    (codelist)             : a comma-separated list of cheat code numbers to enable,\n"
+           "                             with dashes to use code variables (ex 1-2 to use cheat 1 option 2)\n"
            "\n", progname);
 
     return;
@@ -547,6 +563,11 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
             }
             (*ConfigSetParameter)(l_ConfigCore, "R4300Emulator", M64TYPE_INT, &emumode);
         }
+        else if (strcmp(argv[i], "--savestate") == 0 && ArgsLeft >= 1)
+        {
+            l_SaveStatePath = argv[i+1];
+            i++;
+        }
         else if (strcmp(argv[i], "--testshots") == 0 && ArgsLeft >= 1)
         {
             l_TestShotList = ParseNumberList(argv[i+1], NULL);
@@ -740,6 +761,15 @@ int main(int argc, char *argv[])
         if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, FrameCallback) != M64ERR_SUCCESS)
         {
             DebugMessage(M64MSG_WARNING, "couldn't set frame callback, so --testshots won't work.");
+        }
+    }
+
+    /* set up Load SaveState Callback if --savestate is enabled */
+    if (l_SaveStatePath != NULL)
+    {
+        if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, LoadSaveStateCallback) != M64ERR_SUCCESS)
+        {
+            DebugMessage(M64MSG_WARNING, "couldn't set load savestate callback, rom will run normally.");
         }
     }
 

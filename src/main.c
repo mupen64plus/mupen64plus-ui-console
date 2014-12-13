@@ -126,6 +126,15 @@ void DebugCallback(void *Context, int level, const char *message)
 
 static void FrameCallback(unsigned int FrameIndex)
 {
+    // load savestate at first frame if needed
+    if (l_SaveStatePath != NULL && FrameIndex == 0)
+    {
+        if ((*CoreDoCommand)(M64CMD_STATE_LOAD, 0, (void *) l_SaveStatePath) != M64ERR_SUCCESS)
+        {
+            DebugMessage(M64MSG_WARNING, "couldn't load state, rom will run normally.");
+        }
+    }
+
     // take a screenshot if we need to
     if (l_TestShotList != NULL)
     {
@@ -145,19 +154,6 @@ static void FrameCallback(unsigned int FrameIndex)
     }
 }
 
-static void LoadSaveStateCallback(unsigned int FrameIndex)
-{
-    if (l_SaveStatePath != NULL)
-    {
-        if (FrameIndex == 0 ) // this avoid to load the savestate at each frame
-        {
-            if ((*CoreDoCommand)(M64CMD_STATE_LOAD, 0, (void *) l_SaveStatePath) != M64ERR_SUCCESS)
-            {
-                DebugMessage(M64MSG_WARNING, "couldn't load state, rom will run normally.");
-            }
-        }
-    }
-}
 /*********************************************************************************************************
  *  Configuration handling
  */
@@ -755,21 +751,12 @@ int main(int argc, char *argv[])
         }
     }
 
-    /* set up Frame Callback if --testshots is enabled */
-    if (l_TestShotList != NULL)
+    /* set up Frame Callback if --testshots or --savestate is enabled */
+    if (l_TestShotList != NULL && l_SaveStatePath != NULL)
     {
         if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, FrameCallback) != M64ERR_SUCCESS)
         {
-            DebugMessage(M64MSG_WARNING, "couldn't set frame callback, so --testshots won't work.");
-        }
-    }
-
-    /* set up Load SaveState Callback if --savestate is enabled */
-    if (l_SaveStatePath != NULL)
-    {
-        if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, LoadSaveStateCallback) != M64ERR_SUCCESS)
-        {
-            DebugMessage(M64MSG_WARNING, "couldn't set load savestate callback, rom will run normally.");
+            DebugMessage(M64MSG_WARNING, "couldn't set frame callback, --testshots and/or --savestate will not work.");
         }
     }
 

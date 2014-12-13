@@ -752,7 +752,7 @@ int main(int argc, char *argv[])
     }
 
     /* set up Frame Callback if --testshots or --savestate is enabled */
-    if (l_TestShotList != NULL && l_SaveStatePath != NULL)
+    if (l_TestShotList != NULL || l_SaveStatePath != NULL)
     {
         if ((*CoreDoCommand)(M64CMD_SET_FRAME_CALLBACK, 0, FrameCallback) != M64ERR_SUCCESS)
         {

@@ -105,7 +105,7 @@ int debugger_print_registers() {
 /*
  * Debugger main loop
  */
-void *debugger_loop(void *arg) {
+int debugger_loop(void *arg) {
     char input[256];
     while (1) {
         if (debugger_loop_wait) {
@@ -152,5 +152,7 @@ void *debugger_loop(void *arg) {
         else
             printf("Unrecognized: %s\n", input);
     }
+
+    return -1;
 }
 

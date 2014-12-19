@@ -31,7 +31,7 @@
 #include <stdarg.h>
 
 #include <SDL_main.h>
-#include <pthread.h>
+#include <SDL_thread.h>
 
 #include "debugger.h"
 #include "cheat.h"
@@ -757,8 +757,7 @@ int main(int argc, char *argv[])
     printf("Setup debugger callbacks.\n");
 
     /* Fork the debugger input thread. */
-    pthread_t debug_loop;
-    pthread_create(&debug_loop, NULL, debugger_loop, NULL);
+    SDL_CreateThread(debugger_loop, "DebugLoop", NULL);
 
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);

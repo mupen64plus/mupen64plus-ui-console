@@ -9,6 +9,6 @@ int debugger_loop_wait;
 
 int debugger_setup_callbacks();
 int debugger_step();
-void *debugger_loop(void *arg);
+int debugger_loop(void *arg);
 
 #endif /* __DEBUGGER_H__ */

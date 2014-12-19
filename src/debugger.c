@@ -88,15 +88,27 @@ int debugger_print_registers() {
 
     printf("General Purpose Registers:\n");
     int i;
+    const char *format_padded = "%4s %016X ";
+    const char *format_nopad = "%4s %16X ";
     for (i = 0; i < 32; ++i) {
         char val_changed = reg_ran_previously && regs[i] != prev_reg_values[i];
+
+        // Use bold font if the value has changed since last time.
         if (val_changed)
             printf("%c[1m", 27); // Bold on
-        printf("%4s %016X ", register_names[i], regs[i]);
+
+        // Print the register value, no padding if it is all zeroes. 
+        printf(regs[i] == 0 ? format_nopad : format_padded,
+               register_names[i], regs[i]);
+
+        // Unset bold.
         if (val_changed)
             printf("%c[0m", 27); // Bold off
+
         reg_ran_previously = 1;
         prev_reg_values[i] = regs[i];
+
+        // Two registers per line.
         if (i % 2 != 0)
             printf("\n");
     }

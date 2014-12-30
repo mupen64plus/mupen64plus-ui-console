@@ -3,9 +3,10 @@
 
 int debugger_loop_wait;
 
-//void dbg_frontend_init();
-//void dbg_frontend_update(unsigned int pc);
-//void dbg_frontend_vi();
+typedef struct {
+  unsigned int addr;
+  unsigned char enabled;
+} breakpoint_t;
 
 int debugger_setup_callbacks();
 int debugger_step();

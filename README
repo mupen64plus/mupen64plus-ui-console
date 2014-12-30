@@ -43,6 +43,17 @@ step <num-steps>
   When paused, instructs the emulator to make a single step, or a series of
   steps if num-steps is provided.
 
+regs
+  Prints out general purpose register values.
+
+bp add <addr>
+  Adds a breakpoint at a given address.
+
+bp rm <addr|index>
+  Removes a breakpoint by address or number.
+
+bp list
+  Lists all breakpoints.
 
 ===============================================================================
 -------------------------------------------------------------------------------

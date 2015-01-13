@@ -30,8 +30,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include <SDL_main.h>
-
 #include "cheat.h"
 #include "main.h"
 #include "plugin.h"

@@ -67,6 +67,7 @@
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDLmain.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -96,6 +97,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\bin\*.dll "$(OutDir)"
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
+      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL-1.2.14\lib\SDLmain.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>

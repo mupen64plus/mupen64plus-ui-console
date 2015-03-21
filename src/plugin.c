@@ -29,6 +29,7 @@
 #include "main.h"  /* for the debug callback function */
 #include "osal_dynamiclib.h"
 #include "osal_files.h"
+#include "osal_preproc.h"
 #include "plugin.h"
 #include "version.h"
 

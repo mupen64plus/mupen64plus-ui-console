@@ -34,6 +34,7 @@
 #include "cheat.h"
 #include "compare_core.h"
 #include "core_interface.h"
+#include "m64p_types.h"
 #include "main.h"
 #include "osal_preproc.h"
 #include "plugin.h"

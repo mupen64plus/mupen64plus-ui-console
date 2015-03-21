@@ -24,6 +24,7 @@
  */
 
 #include <dirent.h>  // for opendir(), readdir(), closedir()
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

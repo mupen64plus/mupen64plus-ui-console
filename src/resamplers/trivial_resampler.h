@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-ui-console - object_factory.h                             *
+ *   Mupen64plus-ui-console - trivial_resampler.h                          *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
  *   Copyright (C) 2015 Bobby Smiles                                       *
  *                                                                         *
@@ -19,22 +19,11 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef M64P_OBJECT_FACTORY_H
-#define M64P_OBJECT_FACTORY_H
+#ifndef M64P_TRIVIAL_RESAMPLER_H
+#define M64P_TRIVIAL_RESAMPLER_H
 
-#include "m64p_types.h"
+#include "object_factory.h"
 
-struct object_factory
-{
-    const char* name;
-    m64p_error  (*init)(void* object);
-    void        (*release)(void* object);
-};
-
-const struct object_factory*
-get_object_factory(const struct object_factory* const* factories, const char* name);
-
-extern const struct object_factory* const audio_backend_factories[];
-extern const struct object_factory* const resampler_factories[];
+const struct object_factory trivial_resampler_factory;
 
 #endif

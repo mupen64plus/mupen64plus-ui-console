@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-ui-console - object_factory.c                             *
+ *   Mupen64plus-ui-console - trivial_resampler.c                          *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
  *   Copyright (C) 2015 Bobby Smiles                                       *
  *                                                                         *
@@ -19,42 +19,69 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "object_factory.h"
+#include "trivial_resampler.h"
+#include "resampler.h"
 
-#include "audio_backends/dummy_audio_backend.h"
-#include "resamplers/trivial_resampler.h"
+#include "m64p_types.h"
 
-#include <string.h>
+#include <stdint.h>
 
-
-const struct object_factory* const audio_backend_factories[] =
+static size_t trivial_resample(void* resampler_data,
+                               const void* src, size_t src_size, unsigned int input_frequency,
+                               void* dst, size_t dst_size, unsigned int output_frequency)
 {
-    &dummy_audio_backend_factory,
-    NULL /* end of array sentinel */
-};
+    size_t i, j;
 
-const struct object_factory* const resampler_factories[] =
-{
-    &trivial_resampler_factory,
-    NULL /* end of array sentinel */
-};
-
-
-const struct object_factory* get_object_factory(const struct object_factory* const* factories, const char* name)
-{
-    if (factories != NULL && name != NULL)
+    if (output_frequency >= input_frequency)
     {
-        while((*factories) != NULL)
-        {
-            if (strcmp(name, (*factories)->name) == 0)
-            {
-                return *factories;
-            }
+        int sldf = input_frequency;
+        int const2 = 2*sldf;
+        int dldf = output_frequency;
+        int const1 = const2 - 2*dldf;
+        int criteria = const2 - dldf;
 
-            ++factories;
+        for (i = 0; i < dst_size/4; ++i)
+        {
+            ((uint32_t*)dst)[i] = ((uint32_t*)src)[j];
+
+            if (criteria >= 0)
+            {
+                ++j;
+                criteria += const1;
+            }
+            else
+            {
+                criteria += const2;
+            }
+        }
+    }
+    else
+    {
+        for (i = 0; i < dst_size/4; ++i)
+        {
+            j = i * input_frequency / output_frequency;
+            ((uint32_t*)dst)[i] = ((uint32_t*)src)[j];
         }
     }
 
-    return NULL;
+    return j * 4;
 }
+
+
+static m64p_error init(void* object)
+{
+    struct m64p_resampler* resampler = (struct m64p_resampler*)object;
+
+    /* fill resampler structure */
+    resampler->resampler_data = NULL;
+    resampler->resample = trivial_resample;
+
+    return M64ERR_SUCCESS;
+}
+
+static void release(void* object)
+{
+}
+
+const struct object_factory trivial_resampler_factory = { "trivial", init, release };
 

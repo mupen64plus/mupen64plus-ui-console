@@ -232,6 +232,8 @@ SOURCE = \
 	$(SRCDIR)/object_factory.c \
 	$(SRCDIR)/plugin.c \
 	$(SRCDIR)/audio_backends/dummy_audio_backend.c \
+	$(SRCDIR)/resamplers/resampler.c \
+	$(SRCDIR)/resamplers/trivial_resampler.c
 
 ifeq ($(OS), MINGW)
 SOURCE += \

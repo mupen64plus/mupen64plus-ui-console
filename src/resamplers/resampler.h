@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-ui-console - object_factory.h                             *
+ *   Mupen64plus-ui-console - resampler.h                                  *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
  *   Copyright (C) 2015 Bobby Smiles                                       *
  *                                                                         *
@@ -19,22 +19,21 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef M64P_OBJECT_FACTORY_H
-#define M64P_OBJECT_FACTORY_H
+#ifndef M64P_RESAMPLER_H
+#define M64P_RESAMPLER_H
 
-#include "m64p_types.h"
+#include <stddef.h>
 
-struct object_factory
+struct m64p_resampler
 {
-    const char* name;
-    m64p_error  (*init)(void* object);
-    void        (*release)(void* object);
+    void* resampler_data;
+    size_t (*resample)(void* resampler_data,
+                       const void* src, size_t src_size, unsigned int input_frequency,
+                       void* dst, size_t dst_size, unsigned int output_frequency);
 };
 
-const struct object_factory*
-get_object_factory(const struct object_factory* const* factories, const char* name);
-
-extern const struct object_factory* const audio_backend_factories[];
-extern const struct object_factory* const resampler_factories[];
+size_t resample(struct m64p_resampler* resampler,
+                const void* src, size_t src_size, unsigned int input_frequency,
+                void* dst, size_t dst_size, unsigned int output_frequency);
 
 #endif

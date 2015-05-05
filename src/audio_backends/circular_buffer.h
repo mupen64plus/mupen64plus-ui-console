@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-ui-console - object_factory.c                             *
+ *   Mupen64plus-ui-console - circular_buffer.h                            *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
  *   Copyright (C) 2015 Bobby Smiles                                       *
  *                                                                         *
@@ -19,49 +19,28 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "object_factory.h"
+#ifndef M64P_CIRCULAR_BUFFER_H
+#define M64P_CIRCULAR_BUFFER_H
 
-#include "audio_backends/dummy_audio_backend.h"
-#include "resamplers/trivial_resampler.h"
+#include <stddef.h>
 
-#ifdef HAVE_SDL_AUDIO_BACKEND
-#include "audio_backends/sdl_audio_backend.h"
-#endif
-
-#include <string.h>
-
-
-const struct object_factory* const audio_backend_factories[] =
+struct circular_buffer
 {
-    &dummy_audio_backend_factory,
-#ifdef HAVE_SDL_AUDIO_BACKEND
-    &sdl_audio_backend_factory,
-#endif
-    NULL /* end of array sentinel */
+    void* data;
+    size_t size;
+    size_t head;
 };
 
-const struct object_factory* const resampler_factories[] =
-{
-    &trivial_resampler_factory,
-    NULL /* end of array sentinel */
-};
+int init_cbuff(struct circular_buffer* cbuff, size_t capacity);
 
+void release_cbuff(struct circular_buffer* cbuff);
 
-const struct object_factory* get_object_factory(const struct object_factory* const* factories, const char* name)
-{
-    if (factories != NULL && name != NULL)
-    {
-        while((*factories) != NULL)
-        {
-            if (strcmp(name, (*factories)->name) == 0)
-            {
-                return *factories;
-            }
+void* cbuff_head(const struct circular_buffer* cbuff, size_t* available);
 
-            ++factories;
-        }
-    }
+void* cbuff_tail(const struct circular_buffer* cbuff, size_t* available);
 
-    return NULL;
-}
+void produce_cbuff_data(struct circular_buffer* cbuff, size_t amount);
 
+void consume_cbuff_data(struct circular_buffer* cbuff, size_t amount);
+
+#endif

@@ -126,7 +126,9 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\bin\*.dll "$(OutDir)"
     <ClCompile Include="..\..\src\osal_dynamiclib_win32.c" />
     <ClCompile Include="..\..\src\osal_files_win32.c" />
     <ClCompile Include="..\..\src\plugin.c" />
+    <ClCompile Include="..\..\src\audio_backends\circular_buffer.c" />
     <ClCompile Include="..\..\src\audio_backends\dummy_audio_backend.c" />
+    <ClCompile Include="..\..\src\audio_backends\sdl_audio_backend.c" />
     <ClCompile Include="..\..\src\resamplers\resampler.c" />
     <ClCompile Include="..\..\src\resamplers\trivial_resampler.c" />
   </ItemGroup>
@@ -141,7 +143,9 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\bin\*.dll "$(OutDir)"
     <ClInclude Include="..\..\src\osal_preproc.h" />
     <ClInclude Include="..\..\src\plugin.h" />
     <ClInclude Include="..\..\src\version.h" />
+    <ClInclude Include="..\..\src\audio_backends\circular_buffer.h" />
     <ClInclude Include="..\..\src\audio_backends\dummy_audio_backend.h" />
+    <ClInclude Include="..\..\src\audio_backends\sdl_audio_backend.h" />
     <ClInclude Include="..\..\src\resamplers\resampler.h" />
     <ClInclude Include="..\..\src\resamplers\trivial_resampler.h" />
   </ItemGroup>

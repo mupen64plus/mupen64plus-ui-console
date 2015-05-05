@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-ui-console - object_factory.c                             *
+ *   Mupen64plus-ui-console - dummy_audio_backend.h                        *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
  *   Copyright (C) 2015 Bobby Smiles                                       *
  *                                                                         *
@@ -19,35 +19,11 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifndef M64P_DUMMY_AUDIO_BACKEND_H
+#define M64P_DUMMY_AUDIO_BACKEND_H
+
 #include "object_factory.h"
 
-#include "audio_backends/dummy_audio_backend.h"
+const struct object_factory dummy_audio_backend_factory;
 
-#include <string.h>
-
-
-const struct object_factory* const audio_backend_factories[] =
-{
-    &dummy_audio_backend_factory,
-    NULL /* end of array sentinel */
-};
-
-
-const struct object_factory* get_object_factory(const struct object_factory* const* factories, const char* name)
-{
-    if (factories != NULL && name != NULL)
-    {
-        while((*factories) != NULL)
-        {
-            if (strcmp(name, (*factories)->name) == 0)
-            {
-                return *factories;
-            }
-
-            ++factories;
-        }
-    }
-
-    return NULL;
-}
-
+#endif

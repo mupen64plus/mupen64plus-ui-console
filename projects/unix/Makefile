@@ -230,7 +230,8 @@ SOURCE = \
 	$(SRCDIR)/core_interface.c \
 	$(SRCDIR)/main.c \
 	$(SRCDIR)/object_factory.c \
-	$(SRCDIR)/plugin.c
+	$(SRCDIR)/plugin.c \
+	$(SRCDIR)/audio_backends/dummy_audio_backend.c \
 
 ifeq ($(OS), MINGW)
 SOURCE += \

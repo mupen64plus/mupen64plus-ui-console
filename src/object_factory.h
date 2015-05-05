@@ -34,4 +34,6 @@ struct object_factory
 const struct object_factory*
 get_object_factory(const struct object_factory* const* factories, const char* name);
 
+extern const struct object_factory* const audio_backend_factories[];
+
 #endif

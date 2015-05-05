@@ -1,5 +1,5 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *   Mupen64plus-ui-console - object_factory.c                             *
+ *   Mupen64plus-ui-console - dummy_audio_backend.c                        *
  *   Mupen64Plus homepage: http://code.google.com/p/mupen64plus/           *
  *   Copyright (C) 2015 Bobby Smiles                                       *
  *                                                                         *
@@ -19,35 +19,27 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#include "object_factory.h"
+#include "dummy_audio_backend.h"
 
-#include "audio_backends/dummy_audio_backend.h"
+#include "m64p_types.h"
 
 #include <string.h>
 
-
-const struct object_factory* const audio_backend_factories[] =
+/* dummy audio backend factory implementation */
+static m64p_error init(void* object)
 {
-    &dummy_audio_backend_factory,
-    NULL /* end of array sentinel */
-};
+    struct m64p_audio_backend* backend = (struct m64p_audio_backend*)object;
 
+    /* set to NULL all members to trigger dummy audio backend behavior in the core */
+    memset(backend, 0, sizeof(*backend));
 
-const struct object_factory* get_object_factory(const struct object_factory* const* factories, const char* name)
-{
-    if (factories != NULL && name != NULL)
-    {
-        while((*factories) != NULL)
-        {
-            if (strcmp(name, (*factories)->name) == 0)
-            {
-                return *factories;
-            }
-
-            ++factories;
-        }
-    }
-
-    return NULL;
+    return M64ERR_SUCCESS;
 }
+
+static void release(void* object)
+{
+}
+
+
+const struct object_factory dummy_audio_backend_factory = { "dummy", init, release };
 

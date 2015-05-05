@@ -229,6 +229,7 @@ SOURCE = \
 	$(SRCDIR)/compare_core.c \
 	$(SRCDIR)/core_interface.c \
 	$(SRCDIR)/main.c \
+	$(SRCDIR)/object_factory.c \
 	$(SRCDIR)/plugin.c
 
 ifeq ($(OS), MINGW)

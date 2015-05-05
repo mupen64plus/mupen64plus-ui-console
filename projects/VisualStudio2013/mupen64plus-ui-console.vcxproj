@@ -122,6 +122,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\bin\*.dll "$(OutDir)"
     <ClCompile Include="..\..\src\compare_core.c" />
     <ClCompile Include="..\..\src\core_interface.c" />
     <ClCompile Include="..\..\src\main.c" />
+    <ClCompile Include="..\..\src\object_factory.c" />
     <ClCompile Include="..\..\src\osal_dynamiclib_win32.c" />
     <ClCompile Include="..\..\src\osal_files_win32.c" />
     <ClCompile Include="..\..\src\plugin.c" />
@@ -131,6 +132,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.3\bin\*.dll "$(OutDir)"
     <ClInclude Include="..\..\src\compare_core.h" />
     <ClInclude Include="..\..\src\core_interface.h" />
     <ClInclude Include="..\..\src\main.h" />
+    <ClInclude Include="..\..\src\object_factory.h" />
     <ClInclude Include="..\..\src\osal_dynamiclib.h" />
     <ClInclude Include="..\..\src\osal_files.h" />
     <ClInclude Include="..\..\src\osal_preproc.h" />

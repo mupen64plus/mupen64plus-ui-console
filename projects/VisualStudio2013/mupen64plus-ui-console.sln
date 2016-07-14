@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mupen64plus-ui-console", "mupen64plus-ui-console.vcxproj", "{0E29D9F8-C675-4D21-AF16-AA80EDDB264E}"
 EndProject
@@ -36,8 +36,8 @@ Global
 		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Debug|Win32.Build.0 = Debug|Win32
 		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Debug|x64.ActiveCfg = Debug|x64
 		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Debug|x64.Build.0 = Debug|x64
-		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Release|Win32.ActiveCfg = Release|Win32
-		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Release|Win32.Build.0 = Release|Win32
+		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Release|Win32.ActiveCfg = New_Dynarec_Release|Win32
+		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Release|Win32.Build.0 = New_Dynarec_Release|Win32
 		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Release|x64.ActiveCfg = Release|x64
 		{92D3FEB9-2129-41C5-8577-BCD7D961EF41}.Release|x64.Build.0 = Release|x64
 		{7F3178D0-0E2E-471B-9160-69F0354F9DE9}.Debug|Win32.ActiveCfg = Debug|Win32

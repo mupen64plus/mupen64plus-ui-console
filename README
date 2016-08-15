@@ -45,6 +45,7 @@ Parameters:
     --core-compare-send   : use the Core Comparison debugging feature, in data sending mode
     --core-compare-recv   : use the Core Comparison debugging feature, in data receiving mode
     --nosaveoptions       : do not save the given command-line options in configuration file
+    --genexec (dir)       : generate an executable ROM in (dir); sets --nosaveoptions
     --verbose             : print lots of information
     --help                : see this help message
 
@@ -77,5 +78,3 @@ UI-Console: 3 cheat code(s) found for ROM 'MY ROM'
 All you have to do to use this cheats is:
 
 mupen64plus --cheats 0,1,2 "/path/to/my/rom.v64"
-
-

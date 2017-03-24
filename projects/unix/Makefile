@@ -89,9 +89,11 @@ endif
 
 # set special flags per-system
 ifeq ($(OS), LINUX)
+  CFLAGS += -DGEN_EXEC
   LDLIBS += -ldl
 endif
 ifeq ($(OS), OSX)
+  CFLAGS += -DGEN_EXEC
   #xcode-select has been around since XCode 3.0, i.e. OS X 10.5
   OSX_SDK_ROOT = $(shell xcode-select -print-path)/Platforms/MacOSX.platform/Developer/SDKs
   OSX_SDK_PATH = $(OSX_SDK_ROOT)/$(shell ls $(OSX_SDK_ROOT) | tail -1)

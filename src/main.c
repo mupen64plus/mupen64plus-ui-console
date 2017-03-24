@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "SDL_main.h"
 #include "cheat.h"
@@ -39,6 +40,11 @@
 #include "osal_preproc.h"
 #include "plugin.h"
 #include "version.h"
+
+#ifdef GEN_EXEC
+    #include <sys/types.h>
+    #include <sys/stat.h>
+#endif
 
 /* Version number for UI-Console config section parameters */
 #define CONFIG_PARAM_VERSION     1.00
@@ -55,6 +61,7 @@ static const char *l_CoreLibPath = NULL;
 static const char *l_ConfigDirPath = NULL;
 static const char *l_ROMFilepath = NULL;       // filepath of ROM to load & run at startup
 static const char *l_SaveStatePath = NULL;     // save state to load at startup
+static const char *l_SaveExecDir = NULL;       // output file path when generating executable ROM
 
 #if defined(SHAREDIR)
   static const char *l_DataDirPath = SHAREDIR;
@@ -267,6 +274,9 @@ static void printUsage(const char *progname)
            "    --core-compare-send    : use the Core Comparison debugging feature, in data sending mode\n"
            "    --core-compare-recv    : use the Core Comparison debugging feature, in data receiving mode\n"
            "    --nosaveoptions        : do not save the given command-line options in configuration file\n"
+#ifdef GEN_EXEC
+           "    --genexec (dir)        : generate an executable ROM in (dir). sets --nosaveoptions\n"
+#endif
            "    --verbose              : print lots of information\n"
            "    --help                 : see this help message\n\n"
            "(plugin-spec):\n"
@@ -578,6 +588,14 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
         {
             l_SaveOptions = 0;
         }
+#ifdef GEN_EXEC
+        else if (strcmp(argv[i], "--genexec") == 0 && ArgsLeft >= 1)
+        {
+            l_SaveExecDir = argv[i+1];
+            l_SaveOptions = 0;
+            i++;
+        }
+#endif
         else if (ArgsLeft == 0)
         {
             /* this is the last arg, it should be a ROM filename */
@@ -599,6 +617,148 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
     DebugMessage(M64MSG_ERROR, "no ROM filepath given");
     return M64ERR_INPUT_INVALID;
 }
+
+#ifdef GEN_EXEC
+static bool writeExecFileContents(FILE* fPtr, const uint32_t argc, const char* const argv[], const unsigned char* const ROM_buffer, const long romlength)
+{
+    uint32_t i;
+    /* Call generic shell script so we can pass in arguments */
+    if (fputs("#!/bin/sh\n", fPtr) == EOF)
+    {
+        return false;
+    }
+
+    /* Loop over arguments provided and write them to the new file.
+    Ignore the last argument (containing the ROM filepath) as we can get the
+    name from the running script. This allows users to rename the script */
+    for (i = 0U; i < argc - 1U; i++)
+    {
+        /* Check for --genexec to avoid re-writing executable every time it is run */
+        if (strcmp(argv[i], "--genexec") == 0)
+        {
+            /* skip --genexec directory as well */
+            i++;
+        }
+        else
+        {
+            /* Put each arg into speech marks in case there are spaces in them */
+            if (fputc('"', fPtr) == EOF)
+            {
+                return false;
+            }
+
+            /* Write the arg to the file */
+            if ( fwrite(argv[i], strlen(argv[i]), 1, fPtr) != 1)
+            {
+                return false;
+            }
+
+            if (fputc('"', fPtr) == EOF)
+            {
+                return false;
+            }
+
+            /* Add a space between args */
+            if (fputc(' ', fPtr) == EOF)
+            {
+                return false;
+            }
+        }
+    }
+
+    /* Allow arguments to the script to be passed to the ui-console by using "$@".
+    Also add the script name on the end "$0". Finally add 'exit' to script
+    so shell does not try and run binary as commands */
+    if (fputs("--nosaveoptions $@ \"$0\"\nexit\n", fPtr) == EOF)
+    {
+        return false;
+    }
+
+    /* End of args, plase a NULL char so strlen() works when running 'ROM.sh' */
+    if (fputc('\0', fPtr) == EOF)
+    {
+        return false;
+    }
+
+    /* Now write out the ROM file itself */
+    if (fwrite(ROM_buffer, romlength, 1, fPtr) != 1)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static void saveExecFile(const int argc, const char* const argv[], const unsigned char* const ROM_buffer, const long romlength)
+{
+    /* Generate an executable */
+
+    const char* const fileName = strrchr(l_ROMFilepath,'/');
+    const char* const fileExtension = strrchr(l_ROMFilepath, '.');
+    char* saveExecPath;
+    const char* newExtension = "";
+
+    /* get memory long enough to store l_SaveExecDir + '/' + filename + ".sh\0" */
+    if (fileName!= NULL)
+    {
+        saveExecPath = malloc(strlen(l_SaveExecDir) + 1 + (fileName - l_ROMFilepath) + 4);
+    }
+    else
+    {
+        saveExecPath = malloc(strlen(l_SaveExecDir) + 1 + strlen(l_ROMFilepath) + 4);
+    }
+
+    if (saveExecPath == NULL)
+    {
+        return;
+    }
+
+    /* Add '.sh' file extension if file does not already have one */
+    if (fileExtension == NULL || strcmp(fileExtension, ".sh") > 0)
+    {
+        newExtension = ".sh";
+    }
+
+    /* Generate Fullpath to new executable file */
+    if (fileName!= NULL)
+    {
+        sprintf(saveExecPath, "%s/%s%s", l_SaveExecDir, fileName, newExtension);
+    }
+    else
+    {
+        sprintf(saveExecPath, "%s/%s%s", l_SaveExecDir, l_ROMFilepath, newExtension);
+    }
+
+    FILE *fPtr = fopen(saveExecPath, "wb");
+    if (fPtr != NULL)
+    {
+        if (writeExecFileContents(fPtr, argc, argv, ROM_buffer, romlength) == false)
+        {
+            DebugMessage(M64MSG_ERROR, "couldn't write executable ROM file '%s'", saveExecPath);
+            perror(NULL);
+            (void)fclose(fPtr);
+        }
+        else
+        {
+            (void)fclose(fPtr);
+            DebugMessage(M64MSG_INFO, "generated executable ROM file '%s'", saveExecPath);
+
+            /* Set the file executable flag for all users */
+            if (chmod(saveExecPath, S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) != 0)
+            {
+                DebugMessage(M64MSG_ERROR, "couldn't set ROM file permissions '%s'", saveExecPath);
+                perror(NULL);
+            }
+        }
+    }
+    else
+    {
+        DebugMessage(M64MSG_ERROR, "couldn't open executable ROM file '%s' for writing", saveExecPath);
+    }
+
+    free(saveExecPath);
+}
+#endif
 
 /*********************************************************************************************************
 * main function
@@ -636,7 +796,6 @@ int main(int argc, char *argv[])
     /* bootstrap some special parameters from the command line */
     if (ParseCommandLineInitial(argc, (const char **) argv) != 0)
         return 1;
-
     /* load the Mupen64Plus core library */
     if (AttachCoreLib(l_CoreLibPath) != M64ERR_SUCCESS)
         return 2;
@@ -697,6 +856,8 @@ int main(int argc, char *argv[])
     romlength = ftell(fPtr);
     fseek(fPtr, 0L, SEEK_SET);
     unsigned char *ROM_buffer = (unsigned char *) malloc(romlength);
+    size_t offset = 0U;
+
     if (ROM_buffer == NULL)
     {
         DebugMessage(M64MSG_ERROR, "couldn't allocate %li-byte buffer for ROM image file '%s'.", romlength, l_ROMFilepath);
@@ -716,8 +877,26 @@ int main(int argc, char *argv[])
     }
     fclose(fPtr);
 
+    /* Look for Hash bang at start of ROM */
+    if (ROM_buffer[0] == '#' && ROM_buffer[1] == '!')
+    {
+        offset = strnlen((char*)ROM_buffer, romlength) + 1U;
+    }
+
+#ifdef GEN_EXEC
+    /* Generate an executable, then quit */
+    if (l_SaveExecDir != NULL)
+    {
+        saveExecFile(argc, (const char * const*)argv, &ROM_buffer[offset], romlength - offset);
+        free(ROM_buffer);
+        (*CoreShutdown)();
+        DetachCoreLib();
+        return 0;
+    }
+#endif
+
     /* Try to load the ROM image into the core */
-    if ((*CoreDoCommand)(M64CMD_ROM_OPEN, (int) romlength, ROM_buffer) != M64ERR_SUCCESS)
+    if ((*CoreDoCommand)(M64CMD_ROM_OPEN, (int) (romlength - offset), &ROM_buffer[offset]) != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_ERROR, "core failed to open ROM image file '%s'.", l_ROMFilepath);
         free(ROM_buffer);

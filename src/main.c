@@ -255,6 +255,7 @@ static void printUsage(const char *progname)
            "    --fullscreen           : use fullscreen display mode\n"
            "    --windowed             : use windowed display mode\n"
            "    --resolution (res)     : display resolution (640x480, 800x600, 1024x768, etc)\n"
+           "    --position (pos)       : window position (0,0; 100,100; 900,500; etc)\n"
            "    --nospeedlimit         : disable core speed limiter (should be used with dummy audio plugin)\n"
            "    --cheats (cheat-spec)  : enable or list cheat codes for the given rom file\n"
            "    --corelib (filepath)   : use core library (filepath) (can be only filename or full path)\n"
@@ -495,6 +496,19 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
             {
                 (*ConfigSetParameter)(l_ConfigVideo, "ScreenWidth", M64TYPE_INT, &xres);
                 (*ConfigSetParameter)(l_ConfigVideo, "ScreenHeight", M64TYPE_INT, &yres);
+            }
+        }
+        else if (strcmp(argv[i], "--position") == 0 && ArgsLeft >= 1)
+        {
+            const char *pos = argv[i+1];
+            int xpos, ypos;
+            i++;
+            if (sscanf(pos, "%i,%i", &xpos, &ypos) != 2)
+                DebugMessage(M64MSG_WARNING, "couldn't parse window position '%s'", pos);
+            else
+            {
+                (*ConfigSetParameter)(l_ConfigCore, "ScreenPosX", M64TYPE_INT, &xpos);
+                (*ConfigSetParameter)(l_ConfigCore, "ScreenPosY", M64TYPE_INT, &ypos);
             }
         }
         else if (strcmp(argv[i], "--cheats") == 0 && ArgsLeft >= 1)

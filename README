@@ -28,6 +28,7 @@ Parameters:
     --fullscreen          : use fullscreen display mode
     --windowed            : use windowed display mode
     --resolution (res)    : display resolution (640x480, 800x600, 1024x768, etc)
+    --position (pos)      : window position (0,0; 100,100; 900,500; etc)
     --nospeedlimit        : disable core speed limiter (should be used with dummy audio plugin)
     --cheats (cheat-spec) : enable or list cheat codes for the given rom file
     --corelib (filepath)  : use core library (filepath) (can be only filename or full path)

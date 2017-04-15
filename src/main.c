@@ -56,6 +56,7 @@ int    g_Verbose = 0;
 static m64p_handle l_ConfigCore = NULL;
 static m64p_handle l_ConfigVideo = NULL;
 static m64p_handle l_ConfigUI = NULL;
+static m64p_handle l_ConfigVideoGlide64mk2 = NULL;
 
 static const char *l_CoreLibPath = NULL;
 static const char *l_ConfigDirPath = NULL;
@@ -155,6 +156,37 @@ static void FrameCallback(unsigned int FrameIndex)
  *  Configuration handling
  */
 
+#define PRODUCT_BRAND "ro.product.brand="
+
+static char *GetProductBrand(void)
+{
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen("/system/build.prop", "r");
+    if (fp == NULL)
+        return NULL;
+
+    while ((read = getline(&line, &len, fp)) != -1)
+    {
+        if (strncmp(line, PRODUCT_BRAND, strlen(PRODUCT_BRAND)) == 0)
+        {
+            char *ret;
+            line[strlen(line)-1] = 0; /* remove newline */
+            ret = strdup(line + strlen(PRODUCT_BRAND));
+            free(line);
+            fclose(fp);
+            return ret;
+        }
+    }
+
+    free(line);
+    fclose(fp);
+    return NULL;
+}
+
 static m64p_error OpenConfigurationHandles(void)
 {
     float fConfigParamsVersion;
@@ -183,6 +215,13 @@ static m64p_error OpenConfigurationHandles(void)
         return rval;
     }
 
+    rval = (*ConfigOpenSection)("Video-Glide64mk2", &l_ConfigVideoGlide64mk2);
+    if (rval != M64ERR_SUCCESS)
+    {
+        DebugMessage(M64MSG_ERROR, "failed to open 'Video-Glide64mk2' configuration section");
+        return rval;
+    }
+
     if ((*ConfigGetParameter)(l_ConfigUI, "Version", M64TYPE_FLOAT, &fConfigParamsVersion, sizeof(float)) != M64ERR_SUCCESS)
     {
         DebugMessage(M64MSG_WARNING, "No version number in 'UI-Console' config section. Setting defaults.");
@@ -206,13 +245,51 @@ static m64p_error OpenConfigurationHandles(void)
         bSaveConfig = 1;
     }
 
-    /* Set default values for my Config parameters */
-    (*ConfigSetDefaultFloat)(l_ConfigUI, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus UI-Console config parameter set version number.  Please don't change this version number.");
-    (*ConfigSetDefaultString)(l_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
-    (*ConfigSetDefaultString)(l_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
-    (*ConfigSetDefaultString)(l_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
-    (*ConfigSetDefaultString)(l_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
-    (*ConfigSetDefaultString)(l_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+    char *product_brand = GetProductBrand();
+    if (product_brand != NULL)
+    {
+        if (strcmp(product_brand, "jolla") == 0)
+        {
+            DebugMessage(M64MSG_VERBOSE, "Setting default config values for the Jolla Phone");
+            /* Set default values for my Config parameters */
+            (*ConfigSetDefaultFloat)(l_ConfigUI, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus UI-Console config parameter set version number.  Please don't change this version number.");
+            (*ConfigSetDefaultString)(l_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
+            (*ConfigSetDefaultString)(l_ConfigUI, "VideoPlugin", "mupen64plus-video-glide64mk2" OSAL_DLL_EXTENSION, "Filename of video plugin");
+            (*ConfigSetDefaultString)(l_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
+            (*ConfigSetDefaultString)(l_ConfigUI, "InputPlugin", "mupen64plus-input-sdltouch" OSAL_DLL_EXTENSION, "Filename of input plugin");
+            (*ConfigSetDefaultString)(l_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+
+            (*ConfigSetDefaultInt)(l_ConfigVideo, "ScreenWidth", 540, "Width of output window or fullscreen width");
+            (*ConfigSetDefaultInt)(l_ConfigVideo, "ScreenHeight", 960, "Height of output window or fullscreen height");
+            (*ConfigSetDefaultInt)(l_ConfigVideo, "Rotate", 3, "Rotate screen contents: 0=0 degree, 1=90 degree, 2 = 180 degree, 3=270 degree");
+
+            (*ConfigSetDefaultInt)(l_ConfigVideoGlide64mk2, "aspect", 2, "Aspect ratio: -1=Game default, 0=Force 4:3, 1=Force 16:9, 2=Stretch, 3=Original");
+        }
+        else
+        {
+            DebugMessage(M64MSG_VERBOSE, "Setting default config values.");
+            /* Set default values for my Config parameters */
+            (*ConfigSetDefaultFloat)(l_ConfigUI, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus UI-Console config parameter set version number.  Please don't change this version number.");
+            (*ConfigSetDefaultString)(l_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
+            (*ConfigSetDefaultString)(l_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
+            (*ConfigSetDefaultString)(l_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
+            (*ConfigSetDefaultString)(l_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
+            (*ConfigSetDefaultString)(l_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+        }
+
+        free(product_brand);
+    }
+    else
+    {
+        DebugMessage(M64MSG_VERBOSE, "Setting default config values.");
+        /* Set default values for my Config parameters */
+        (*ConfigSetDefaultFloat)(l_ConfigUI, "Version", CONFIG_PARAM_VERSION,  "Mupen64Plus UI-Console config parameter set version number.  Please don't change this version number.");
+        (*ConfigSetDefaultString)(l_ConfigUI, "PluginDir", OSAL_CURRENT_DIR, "Directory in which to search for plugins");
+        (*ConfigSetDefaultString)(l_ConfigUI, "VideoPlugin", "mupen64plus-video-rice" OSAL_DLL_EXTENSION, "Filename of video plugin");
+        (*ConfigSetDefaultString)(l_ConfigUI, "AudioPlugin", "mupen64plus-audio-sdl" OSAL_DLL_EXTENSION, "Filename of audio plugin");
+        (*ConfigSetDefaultString)(l_ConfigUI, "InputPlugin", "mupen64plus-input-sdl" OSAL_DLL_EXTENSION, "Filename of input plugin");
+        (*ConfigSetDefaultString)(l_ConfigUI, "RspPlugin", "mupen64plus-rsp-hle" OSAL_DLL_EXTENSION, "Filename of RSP plugin");
+    }
 
     if (bSaveConfig && ConfigSaveSection != NULL) /* ConfigSaveSection was added in Config API v2.1.0 */
         (*ConfigSaveSection)("UI-Console");

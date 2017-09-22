@@ -80,13 +80,6 @@ else
   LDLIBS += -pthread
 endif
 
-ifeq ($(PIE), 1)
-  CFLAGS += -fPIE
-  LDFLAGS += -pie
-else
-  CFLAGS += -fno-PIE
-endif
-
 # set special flags per-system
 ifeq ($(OS), LINUX)
   LDLIBS += -ldl
@@ -177,6 +170,20 @@ INSTALL  ?= install
 MKDIR ?= mkdir -p
 COMPILE.c = $(Q_CC)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 LINK.o = $(Q_LD)$(CC) $(CFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+
+ifeq ($(PIE), 1)
+  CFLAGS += -fPIE
+  LDFLAGS += -pie
+else
+  CFLAGS += -fno-PIE
+  ifeq ($(CC),$(CROSS_COMPILE)gcc)
+    # check if PIE is the default for the compiler
+    PIE_DEFAULT = $(shell gcc -v 2>&1 | grep enable-default-pie)
+    ifneq ($(PIE_DEFAULT),)
+      LDFLAGS += -no-pie
+    endif
+  endif
+endif
 
 # set special flags for given Makefile parameters
 # note: COREDIR _must_ end in a slash if you want it to work; not necessary for the others

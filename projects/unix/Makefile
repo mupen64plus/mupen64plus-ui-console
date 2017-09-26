@@ -178,7 +178,7 @@ else
   CFLAGS += -fno-PIE
   ifeq ($(CC),$(CROSS_COMPILE)gcc)
     # check if PIE is the default for the compiler
-    PIE_DEFAULT = $(shell gcc -v 2>&1 | grep enable-default-pie)
+    PIE_DEFAULT = $(shell $(CC) -v 2>&1 | grep enable-default-pie)
     ifneq ($(PIE_DEFAULT),)
       LDFLAGS += -no-pie
     endif

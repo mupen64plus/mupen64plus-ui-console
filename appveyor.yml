@@ -1,0 +1,15 @@
+version: 1.0.{build}
+
+configuration:
+  - Release
+platform:
+  - x86
+  - x64
+
+before_build:
+- cmd: >-
+    git clone --depth 1 https://github.com/mupen64plus/mupen64plus-win32-deps.git ../mupen64plus-win32-deps
+    git clone --depth 1 https://github.com/mupen64plus/mupen64plus-core.git ../mupen64plus-core
+build:
+  project: projects/VisualStudio2015/mupen64plus-ui-console.vcxproj
+  verbosity: minimal

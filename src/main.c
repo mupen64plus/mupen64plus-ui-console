@@ -713,7 +713,7 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
     return M64ERR_INPUT_INVALID;
 }
 
-static char* gb_cart_loader_get_mem_file(void* cb_data, const char* mem, int control_id)
+static char* media_loader_get_gb_cart_mem_file(void* cb_data, const char* mem, int control_id)
 {
 #define MUPEN64PLUS_CFG_NAME "mupen64plus.cfg"
     m64p_handle core_config;
@@ -722,7 +722,7 @@ static char* gb_cart_loader_get_mem_file(void* cb_data, const char* mem, int con
     const char* configdir = NULL;
     char* cfgfilepath = NULL;
 
-    /* reset ROM filename */
+    /* reset filename */
     char* mem_filename = NULL;
 
     snprintf(key, sizeof(key), "GB-%s-%u", mem, control_id + 1);
@@ -768,21 +768,21 @@ release_cfgfilepath:
     return mem_filename;
 }
 
-static char* gb_cart_loader_get_rom(void* cb_data, int control_id)
+static char* media_loader_get_gb_cart_rom(void* cb_data, int control_id)
 {
-    return gb_cart_loader_get_mem_file(cb_data, "rom", control_id);
+    return media_loader_get_gb_cart_mem_file(cb_data, "rom", control_id);
 }
 
-static char* gb_cart_loader_get_ram(void* cb_data, int control_id)
+static char* media_loader_get_gb_cart_ram(void* cb_data, int control_id)
 {
-    return gb_cart_loader_get_mem_file(cb_data, "ram", control_id);
+    return media_loader_get_gb_cart_mem_file(cb_data, "ram", control_id);
 }
 
-static m64p_gb_cart_loader l_gb_cart_loader =
+static m64p_media_loader l_media_loader =
 {
     NULL,
-    gb_cart_loader_get_rom,
-    gb_cart_loader_get_ram
+    media_loader_get_gb_cart_rom,
+    media_loader_get_gb_cart_ram
 };
 
 
@@ -966,9 +966,9 @@ int main(int argc, char *argv[])
     }
 
     /* set gb cart loader */
-    if ((*CoreDoCommand)(M64CMD_SET_GB_CART_LOADER, sizeof(l_gb_cart_loader), &l_gb_cart_loader) != M64ERR_SUCCESS)
+    if ((*CoreDoCommand)(M64CMD_SET_MEDIA_LOADER, sizeof(l_media_loader), &l_media_loader) != M64ERR_SUCCESS)
     {
-        DebugMessage(M64MSG_WARNING, "Couldn't set GB cart loader, transferpak and GB carts will not work.");
+        DebugMessage(M64MSG_WARNING, "Couldn't set media loader, transferpak and GB carts will not work.");
     }
 
     /* load savestate at startup */

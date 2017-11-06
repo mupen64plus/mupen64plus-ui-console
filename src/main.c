@@ -36,6 +36,7 @@
 #include "core_interface.h"
 #include "m64p_types.h"
 #include "main.h"
+#include "object_factory.h"
 #include "osal_preproc.h"
 #include "osal_files.h"
 #include "plugin.h"
@@ -810,6 +811,8 @@ __attribute__ ((visibility("default")))
 int main(int argc, char *argv[])
 {
     int i;
+    const struct object_factory* l_AudioBackendFactory;
+    struct m64p_audio_backend l_AudioBackend = { 0 };
 
     printf(" __  __                         __   _  _   ____  _             \n");  
     printf("|  \\/  |_   _ _ __   ___ _ __  / /_ | || | |  _ \\| |_   _ ___ \n");
@@ -862,6 +865,54 @@ int main(int argc, char *argv[])
         (*CoreShutdown)();
         DetachCoreLib();
         return 5;
+    }
+
+    /* list available audio backends if requested */
+    if (g_AudioPlugin != NULL)
+    {
+        if (strcmp(g_AudioPlugin,"list") == 0)
+        {
+            DebugMessage(M64MSG_INFO, "List of available audio backends:");
+            for(i = 0; audio_backend_factories[i] != NULL; ++i)
+            {
+                DebugMessage(M64MSG_INFO, "%d. %s", i, audio_backend_factories[i]->name);
+            }
+
+            (*CoreShutdown)();
+            DetachCoreLib();
+            return 0;
+        }
+    }
+
+    /* test if audio argument is an audio backend factory */
+    l_AudioBackendFactory = get_object_factory(audio_backend_factories, g_AudioPlugin);
+    if (l_AudioBackendFactory != NULL)
+    {
+        /* call audio backend init procedure */
+        if (l_AudioBackendFactory->init(&l_AudioBackend) != M64ERR_SUCCESS)
+        {
+            DebugMessage(M64MSG_ERROR, "failed initialization of %s audio backend", l_AudioBackendFactory->name);
+            memset(&l_AudioBackend, 0, sizeof(l_AudioBackend));
+            l_AudioBackendFactory = NULL;
+        }
+        else
+        {
+
+            /* let the core know about the audio backend */
+            if ((*CoreDoCommand)(M64CMD_SET_AUDIO_INTERFACE_BACKEND, M64P_AUDIO_BACKEND_VERSION, &l_AudioBackend) != M64ERR_SUCCESS)
+            {
+                DebugMessage(M64MSG_ERROR, "core error while setting %s audio backend", l_AudioBackendFactory->name);
+                l_AudioBackendFactory->release(&l_AudioBackend);
+                memset(&l_AudioBackend, 0, sizeof(l_AudioBackend));
+                l_AudioBackendFactory = NULL;
+            }
+            else
+            {
+                DebugMessage(M64MSG_INFO, "using audio backend %s", l_AudioBackendFactory->name);
+                /* disable audio plugin if audio backend was successfully set */
+                g_AudioPlugin = "dummy";
+            }
+        }
     }
 
     /* Handle the core comparison feature */
@@ -987,6 +1038,14 @@ int main(int argc, char *argv[])
     for (i = 0; i < 4; i++)
         (*CoreDetachPlugin)(g_PluginMap[i].type);
     PluginUnload();
+
+    /* release audio backend */
+    if (l_AudioBackendFactory != NULL)
+    {
+        l_AudioBackendFactory->release(&l_AudioBackend);
+        memset(&l_AudioBackend, 0, sizeof(l_AudioBackend));
+        l_AudioBackendFactory = NULL;
+    }
 
     /* close the ROM image */
     (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);

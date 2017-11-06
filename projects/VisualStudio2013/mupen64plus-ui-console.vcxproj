@@ -219,20 +219,32 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x64\*.dll "$(OutDir)"
     <ClCompile Include="..\..\src\compare_core.c" />
     <ClCompile Include="..\..\src\core_interface.c" />
     <ClCompile Include="..\..\src\main.c" />
+    <ClCompile Include="..\..\src\object_factory.c" />
     <ClCompile Include="..\..\src\osal_dynamiclib_win32.c" />
     <ClCompile Include="..\..\src\osal_files_win32.c" />
     <ClCompile Include="..\..\src\plugin.c" />
+    <ClCompile Include="..\..\src\audio_backends\circular_buffer.c" />
+    <ClCompile Include="..\..\src\audio_backends\dummy_audio_backend.c" />
+    <ClCompile Include="..\..\src\audio_backends\sdl_audio_backend.c" />
+    <ClCompile Include="..\..\src\resamplers\resampler.c" />
+    <ClCompile Include="..\..\src\resamplers\trivial_resampler.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cheat.h" />
     <ClInclude Include="..\..\src\compare_core.h" />
     <ClInclude Include="..\..\src\core_interface.h" />
     <ClInclude Include="..\..\src\main.h" />
+    <ClInclude Include="..\..\src\object_factory.h" />
     <ClInclude Include="..\..\src\osal_dynamiclib.h" />
     <ClInclude Include="..\..\src\osal_files.h" />
     <ClInclude Include="..\..\src\osal_preproc.h" />
     <ClInclude Include="..\..\src\plugin.h" />
     <ClInclude Include="..\..\src\version.h" />
+    <ClInclude Include="..\..\src\audio_backends\circular_buffer.h" />
+    <ClInclude Include="..\..\src\audio_backends\dummy_audio_backend.h" />
+    <ClInclude Include="..\..\src\audio_backends\sdl_audio_backend.h" />
+    <ClInclude Include="..\..\src\resamplers\resampler.h" />
+    <ClInclude Include="..\..\src\resamplers\trivial_resampler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

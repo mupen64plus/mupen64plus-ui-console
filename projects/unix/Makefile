@@ -235,7 +235,18 @@ SOURCE = \
 	$(SRCDIR)/compare_core.c \
 	$(SRCDIR)/core_interface.c \
 	$(SRCDIR)/main.c \
-	$(SRCDIR)/plugin.c
+	$(SRCDIR)/object_factory.c \
+	$(SRCDIR)/plugin.c \
+	$(SRCDIR)/audio_backends/circular_buffer.c \
+	$(SRCDIR)/audio_backends/dummy_audio_backend.c \
+	$(SRCDIR)/resamplers/resampler.c \
+	$(SRCDIR)/resamplers/trivial_resampler.c
+
+# optional audio backends
+ifeq ($(HAVE_SDL_AUDIO_BACKEND),1)
+	CFLAGS += '-DHAVE_SDL_AUDIO_BACKEND'
+	SOURCE += $(SRCDIR)/audio_backends/sdl_audio_backend.c
+endif
 
 ifeq ($(OS), MINGW)
 SOURCE += \
@@ -271,7 +282,9 @@ targets:
 	@echo "    OPTFLAGS=flags == compiler optimization (default: -O3 -flto)"
 	@echo "    WARNFLAGS=flag == compiler warning levels (default: -Wall)"
 	@echo "    PIE=(1|0)      == Force enable/disable of position independent executables"
-	@echo "    POSTFIX=name  == String added to the name of the the build (default: '')"
+	@echo "    POSTFIX=name   == String added to the name of the the build (default: '')"
+	@echo "  Optional modules:"
+	@echo "	   HAVE_SDL_AUDIO_BACKEND=(1|0) == enable|disable SDL audio backend compilation (default:0)"
 	@echo "  Install Options:"
 	@echo "    PREFIX=path    == install/uninstall prefix (default: /usr/local/)"
 	@echo "    BINDIR=path    == path to install mupen64plus binary (default: PREFIX/bin/)"

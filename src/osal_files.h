@@ -34,19 +34,14 @@
   #include <io.h> // For _unlink()
 
   #define unlink _unlink
+  #define snprintf _snprintf
+  #define strdup _strdup
 
   #define OSAL_DIR_SEPARATORS           "\\/"
-  #define PATH_MAX _MAX_PATH
 #else  /* Not WIN32 */
-  #include <limits.h>  // for PATH_MAX
   #include <unistd.h>  // for unlink()
 
   #define OSAL_DIR_SEPARATORS           "/"
-
-  /* PATH_MAX only may be defined by limits.h */
-  #ifndef PATH_MAX
-    #define PATH_MAX 4096
-  #endif
 #endif
 
 /* data structure for linked list of shared libraries found in a directory */

@@ -28,23 +28,23 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -88,7 +88,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -100,7 +100,7 @@
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x86\SDLmain.lib;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x86\SDL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x86\SDL2main.lib;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x86\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -114,6 +114,7 @@ copy ..\..\..\mupen64plus-input-sdl\data\* "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\freetype-2.6\lib\x86\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\libpng-1.6.18\lib\x86\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x86\*.dll "$(OutDir)"
+copy ..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x86\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x86\*.dll "$(OutDir)"
 
 </Command>
@@ -122,7 +123,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x86\*.dll "$(OutDir)"
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -133,7 +134,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x86\*.dll "$(OutDir)"
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x64\SDLmain.lib;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x64\SDL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x64\SDL2main.lib;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x64\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
     </Link>
@@ -146,13 +147,14 @@ copy ..\..\..\mupen64plus-input-sdl\data\* "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\freetype-2.6\lib\x64\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\libpng-1.6.18\lib\x64\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x64\*.dll "$(OutDir)"
+copy ..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x64\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x64\*.dll "$(OutDir)"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -162,7 +164,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x64\*.dll "$(OutDir)"
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x86\SDLmain.lib;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x86\SDL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x86\SDL2main.lib;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x86\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -178,6 +180,7 @@ copy ..\..\..\mupen64plus-input-sdl\data\* "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\freetype-2.6\lib\x86\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\libpng-1.6.18\lib\x86\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x86\*.dll "$(OutDir)"
+copy ..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x86\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x86\*.dll "$(OutDir)"
 
 </Command>
@@ -185,7 +188,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x86\*.dll "$(OutDir)"
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\mupen64plus-core\src\api;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>
@@ -195,7 +198,7 @@ copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x86\*.dll "$(OutDir)"
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x64\SDLmain.lib;..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x64\SDL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x64\SDL2main.lib;..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x64\SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -210,6 +213,7 @@ copy ..\..\..\mupen64plus-input-sdl\data\* "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\freetype-2.6\lib\x64\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\libpng-1.6.18\lib\x64\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\SDL-1.2.15\lib\x64\*.dll "$(OutDir)"
+copy ..\..\..\mupen64plus-win32-deps\SDL2-2.0.6\lib\x64\*.dll "$(OutDir)"
 copy ..\..\..\mupen64plus-win32-deps\zlib-1.2.8\lib\x64\*.dll "$(OutDir)"
 </Command>
     </PostBuildEvent>

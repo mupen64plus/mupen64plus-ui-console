@@ -76,8 +76,10 @@ ifeq ($(OS), MINGW)
   CFLAGS += -lpthread
   LDLIBS += -lpthread
 else
-  CFLAGS += -pthread
-  LDLIBS += -pthread
+  ifneq ($(OS), OSX)
+    CFLAGS += -pthread
+    LDLIBS += -pthread
+  endif
 endif
 
 # set special flags per-system
@@ -86,6 +88,7 @@ ifeq ($(OS), LINUX)
 endif
 ifeq ($(OS), OSX)
   OSX_SDK_PATH = $(shell xcrun --sdk macosx --show-sdk-path)
+  LDLIBS += -framework CoreFoundation
 
   ifeq ($(CPU), X86)
     ifeq ($(ARCH_DETECTED), 64BITS)

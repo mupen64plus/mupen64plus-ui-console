@@ -1,7 +1,7 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *   Mupen64plus-ui-console - main.c                                       *
  *   Mupen64Plus homepage: https://mupen64plus.org/                        *
- *   Copyright (C) 2007-2010 Richard42                                     *
+ *   Copyright (C) 2007-2018 Richard42                                     *
  *   Copyright (C) 2008 Ebenblues Nmn Okaygo Tillin9                       *
  *   Copyright (C) 2002 Hacktarux                                          *
  *                                                                         *
@@ -30,10 +30,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "SDL_main.h"
+#include <SDL_main.h>
+#include <SDL_thread.h>
+
 #include "cheat.h"
 #include "compare_core.h"
 #include "core_interface.h"
+#include "debugger.h"
 #include "m64p_types.h"
 #include "main.h"
 #include "osal_preproc.h"
@@ -74,6 +77,7 @@ static int  *l_TestShotList = NULL;      // list of screenshots to take for regr
 static int   l_TestShotIdx = 0;          // index of next screenshot frame in list
 static int   l_SaveOptions = 1;          // save command-line options in configuration file (enabled by default)
 static int   l_CoreCompareMode = 0;      // 0 = disable, 1 = send, 2 = receive
+static int   l_LaunchDebugger = 0;
 
 static eCheatMode l_CheatMode = CHEAT_DISABLE;
 static char      *l_CheatNumList = NULL;
@@ -350,6 +354,7 @@ static void printUsage(const char *progname)
            "    --corelib (filepath)   : use core library (filepath) (can be only filename or full path)\n"
            "    --configdir (dir)      : force configation directory to (dir); should contain mupen64plus.cfg\n"
            "    --datadir (dir)        : search for shared data files (.ini files, languages, etc) in (dir)\n"
+           "    --debug                : launch console-based debugger (requires core lib built for debugging)\n"
            "    --plugindir (dir)      : search for plugins in (dir)\n"
            "    --sshotdir (dir)       : set screenshot directory to (dir)\n"
            "    --gfx (plugin-spec)    : use gfx plugin given by (plugin-spec)\n"
@@ -664,6 +669,10 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
                 return M64ERR_INPUT_INVALID;
             i++;
         }
+        else if (strcmp(argv[i], "--debug") == 0)
+        {
+            l_LaunchDebugger = 1;
+        }
         else if (strcmp(argv[i], "--core-compare-send") == 0)
         {
             l_CoreCompareMode = 1;
@@ -864,7 +873,7 @@ int main(int argc, char *argv[])
         return 5;
     }
 
-    /* Handle the core comparison feature */
+    /* Ensure that the core supports comparison feature if necessary */
     if (l_CoreCompareMode != 0 && !(g_CoreCapabilities & M64CAPS_CORE_COMPARE))
     {
         DebugMessage(M64MSG_ERROR, "can't use --core-compare feature with this Mupen64Plus core library.");
@@ -872,6 +881,14 @@ int main(int argc, char *argv[])
         return 6;
     }
     compare_core_init(l_CoreCompareMode);
+    
+    /* Ensure that the core supports the debugger if necessary */
+    if (l_LaunchDebugger && !(g_CoreCapabilities & M64CAPS_DEBUGGER))
+    {
+        DebugMessage(M64MSG_ERROR, "can't use --debug feature with this Mupen64Plus core library.");
+        DetachCoreLib();
+        return 6;
+    }
 
     /* save the given command-line options in configuration file if requested */
     if (l_SaveOptions)
@@ -978,6 +995,21 @@ int main(int argc, char *argv[])
         {
             DebugMessage(M64MSG_WARNING, "couldn't load state, rom will run normally.");
         }
+    }
+
+    /* Setup debugger */
+    if (l_LaunchDebugger)
+    {
+        if (debugger_setup_callbacks())
+        {
+            DebugMessage(M64MSG_ERROR, "couldn't setup debugger callbacks.");
+            (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
+            (*CoreShutdown)();
+            DetachCoreLib();
+            return 14;
+        }
+        /* Fork the debugger input thread. */
+        SDL_CreateThread(debugger_loop, "DebugLoop", NULL);
     }
 
     /* run the game */

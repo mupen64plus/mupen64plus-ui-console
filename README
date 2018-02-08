@@ -1,3 +1,4 @@
+
 ===============================================================================
 -------------------------------------------------------------------------------
 Mupen64plus-ui-console README                                              v2.5
@@ -79,5 +80,55 @@ UI-Console: 3 cheat code(s) found for ROM 'MY ROM'
 All you have to do to use this cheats is:
 
 mupen64plus --cheats 0,1,2 "/path/to/my/rom.v64"
+
+-------------------------------------------------------------------------------
+Debugger
+-------------------------------------------------------------------------------
+
+Setup
+=====
+
+You must use a mupen64plus core library which was built with the DEBUGGER flag set.
+
+Running
+=======
+
+Use the --debug command-line option to enable the console debugger.
+
+The emulator mode should be set to "interpreter", as the dynarec seems to cause
+issues when interacting with the debugging API. This can be done with the R4300Emulator
+config setting or with the --emumode flag.
+
+Usage
+=====
+
+Once the emulator boots, it will be paused by default. You will be presented
+with a prompt as follows:
+
+(dbg) 
+
+The following commands can be entered:
+
+run
+  Unpauses the game.
+
+pause
+  Pauses the game.
+
+step <num-steps>
+  When paused, instructs the emulator to make a single step, or a series of
+  steps if num-steps is provided.
+
+regs
+  Prints out general purpose register values.
+
+bp add <addr>
+  Adds a breakpoint at a given address.
+
+bp rm <addr|index>
+  Removes a breakpoint by address or number.
+
+bp list
+  Lists all breakpoints.
 
 

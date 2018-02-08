@@ -227,10 +227,9 @@ int debugger_loop(void *arg) {
             printf("Previous PC: %08X\n", debugger_get_prev_pc());
         }
         else if (strcmp(input, "asm") == 0) {
-            char *decoded = debugger_decode_op(debugger_read_32(cur_pc),
-                                               cur_pc,
-                                               NULL);
-            printf(decoded);
+            char decoded[64];
+            debugger_decode_op(debugger_read_32(cur_pc), cur_pc, decoded);
+            printf("%s", decoded);
             printf(" %s\n", decoded + 10);
         }
         else if (strcmp(input, "bp list") == 0 || strcmp(input, "bp ls") == 0) {

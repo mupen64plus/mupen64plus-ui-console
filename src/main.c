@@ -1008,6 +1008,9 @@ int main(int argc, char *argv[])
             DetachCoreLib();
             return 14;
         }
+        /* Set Core config parameter to enable debugger */
+        int bEnableDebugger = 1;
+        (*ConfigSetParameter)(l_ConfigCore, "EnableDebugger", M64TYPE_BOOL, &bEnableDebugger);
         /* Fork the debugger input thread. */
         SDL_CreateThread(debugger_loop, "DebugLoop", NULL);
     }

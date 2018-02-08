@@ -25,8 +25,7 @@
 #include "core_interface.h"
 #include "debugger.h"
 
-// For usleep
-#include <unistd.h>
+#include <SDL.h>
 
 /*
  * Variables
@@ -181,12 +180,14 @@ int debugger_loop(void *arg) {
     char input[256];
     while (1) {
         if (debugger_loop_wait) {
-            usleep(100);
+            SDL_Delay(1);
             continue;
         }
 
         printf("(dbg) ");
-        fgets(input, 256, stdin);
+        if (fgets(input, 256, stdin) == NULL) {
+            break;
+        }
         input[strlen(input) - 1] = 0;
 
         if (strcmp(input, "run") == 0) {
@@ -331,6 +332,7 @@ int debugger_loop(void *arg) {
         }
         else if (strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0) {
             (*CoreDoCommand)(M64CMD_STOP, 0, NULL);
+            break;
         }
         else if (strlen(input) == 0)
             continue;

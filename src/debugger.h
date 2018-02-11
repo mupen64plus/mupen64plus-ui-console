@@ -22,7 +22,7 @@
 #ifndef __DEBUGGER_H__
 #define __DEBUGGER_H__
 
-int debugger_loop_wait;
+extern int debugger_loop_wait;
 
 typedef struct {
   unsigned int addr;

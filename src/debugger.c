@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "core_interface.h"
 #include "debugger.h"
@@ -71,7 +72,7 @@ static int num_breakpoints = 0;
  * Debugger callbacks.
  */
 void dbg_frontend_init() {
-    breakpoints = malloc(BREAKPOINTS_MAX_NUMBER * sizeof(m64p_breakpoint));
+    breakpoints = (m64p_breakpoint *) malloc(BREAKPOINTS_MAX_NUMBER * sizeof(m64p_breakpoint));
     printf("Debugger initialized.\n");
 }
 
@@ -103,7 +104,7 @@ int debugger_setup_callbacks() {
 }
 
 int debugger_set_run_state(int state) {
-    m64p_error rval = (*DebugSetRunState)(state);
+    m64p_error rval = (*DebugSetRunState)((m64p_dbg_runstate) state);
     return rval != M64ERR_SUCCESS;
 }
 
@@ -117,7 +118,7 @@ int debugger_get_prev_pc() {
     return (*DebugGetState)(M64P_DBG_PREVIOUS_PC);
 }
 
-int debugger_read_64(unsigned int addr) {
+int64_t debugger_read_64(unsigned int addr) {
     return (*DebugMemRead64)(addr);
 }
 int debugger_read_32(unsigned int addr) {
@@ -131,7 +132,7 @@ int debugger_read_8(unsigned int addr) {
 }
 
 int debugger_print_registers() {
-    unsigned long long int *regs = (*DebugGetCPUDataPtr)(M64P_CPU_REG_REG);
+    unsigned long long int *regs = (unsigned long long int *) (*DebugGetCPUDataPtr)(M64P_CPU_REG_REG);
     if (regs == NULL)
         return -1;
 
@@ -167,7 +168,7 @@ int debugger_print_registers() {
 char *debugger_decode_op(unsigned int instruction, int instruction_addr,
                          char *output) {
     if (output == NULL)
-        output = calloc(40, sizeof(char));
+        output = (char *) calloc(40, sizeof(char));
 
     (*DebugDecodeOp)(instruction, output, output + 10, instruction_addr);
     return output;

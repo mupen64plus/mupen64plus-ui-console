@@ -233,6 +233,73 @@ int debugger_loop(void *arg) {
             printf("%s", decoded);
             printf(" %s\n", decoded + 10);
         }
+        else if (strncmp(input, "mem", 3) == 0) {
+            uint32_t readAddr, length=1, rows=1, size=4;
+            char chSize;
+            if (sscanf(input, "mem /%ux%u%c %i", &rows, &length, &chSize, &readAddr) == 4 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
+            {
+                if (chSize == 'b')
+                    size = 1;
+                else if (chSize == 'h')
+                    size = 2;
+                else if (chSize == 'w')
+                    size = 4;
+                else // chSize == 'd'
+                    size = 8;
+            }
+            else if (sscanf(input, "mem /%ux%u %i", &rows, &length, &readAddr) == 3)
+            {
+            }
+            else if (sscanf(input, "mem /%u%c %i", &length, &chSize, &readAddr) == 3 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
+            {
+                rows = 1;
+                if (chSize == 'b')
+                    size = 1;
+                else if (chSize == 'h')
+                    size = 2;
+                else if (chSize == 'w')
+                    size = 4;
+                else // chSize == 'd'
+                    size = 8;
+            }
+            else if (sscanf(input, "mem /%u %i", &length, &readAddr) == 2)
+            {
+                rows = 1;
+            }
+            else if (sscanf(input, "mem %i", &readAddr) == 1)
+            {
+                rows = 1;
+                length = 1;
+            }
+            else
+            {
+                printf("Improperly formatted memory read command: '%s'\n", input);
+                continue;
+            }
+            for (uint32_t i = 0; i < rows; i++)
+            {
+                for (uint32_t j = 0; j < length; j++)
+                {
+                    uint32_t thisAddr = readAddr + ((i * length) + j) * size;
+                    switch(size)
+                    {
+                        case 1:
+                            printf("%02x ", debugger_read_8(thisAddr));
+                            break;
+                        case 2:
+                            printf("%04x ", debugger_read_16(thisAddr));
+                            break;
+                        case 4:
+                            printf("%08x ", debugger_read_32(thisAddr));
+                            break;
+                        case 8:
+                            printf("%016llx ", (long long unsigned int) debugger_read_64(thisAddr));
+                            break;
+                    }
+                }
+                printf("\n");
+            }
+        }
         else if (strcmp(input, "bp list") == 0 || strcmp(input, "bp ls") == 0) {
             if (num_breakpoints == 0) {
                 printf("No breakpoints added. Add with 'bp add 0x...'\n");

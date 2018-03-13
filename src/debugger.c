@@ -235,6 +235,7 @@ int debugger_loop(void *arg) {
         }
         else if (strncmp(input, "mem", 3) == 0) {
             uint32_t readAddr, length=1, rows=1, size=4;
+            uint32_t i, j;
             char chSize;
             if (sscanf(input, "mem /%ux%u%c %i", &rows, &length, &chSize, &readAddr) == 4 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
             {
@@ -276,9 +277,9 @@ int debugger_loop(void *arg) {
                 printf("Improperly formatted memory read command: '%s'\n", input);
                 continue;
             }
-            for (uint32_t i = 0; i < rows; i++)
+            for (i = 0; i < rows; i++)
             {
-                for (uint32_t j = 0; j < length; j++)
+                for (j = 0; j < length; j++)
                 {
                     uint32_t thisAddr = readAddr + ((i * length) + j) * size;
                     switch(size)

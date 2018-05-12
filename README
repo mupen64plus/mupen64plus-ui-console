@@ -161,3 +161,22 @@ bp list
 exit|quit
   Stop emulator and quit debugger
 
+-------------------------------------------------------------------------------
+64DD Support
+-------------------------------------------------------------------------------
+
+Some compatibility with the 64DD disk drive unit has been implemented, but there
+are a few small usability issues of which users should be aware.
+
+When using the 64DD, you need to pass a path to a cartridge rom, even if none is
+strictly required.  The IPL boot rom will execute first and select the disk if
+you have one inserted, or just show the boot menu otherwise.  We can remove this
+requirement at a later time. For now all we need to remember is to use a Japanese
+ROM (otherwise some region check will fail) with same features as the 64DD game
+you want to play (think RumblePak, TransferPak, otherwise, they won't be available).
+
+There is a sibling issue also with 64DD games in that there are no entries in the
+game db (mupen64plus.ini) for them, and the core currently only relies on the cart
+ROM loaded to fetch the ROM infos.
+
+

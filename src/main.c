@@ -318,7 +318,7 @@ static m64p_error OpenConfigurationHandles(void)
     (*ConfigSetDefaultString)(l_Config64DD, "IPL-ROM", "", "Filename of the 64DD IPL ROM");
     (*ConfigSetDefaultString)(l_Config64DD, "Disk", "", "Filename of the disk to load into Disk Drive");
 
-    if (bSaveConfig && ConfigSaveSection != NULL) { /* ConfigSaveSection was added in Config API v2.1.0 */
+    if (bSaveConfig && l_SaveOptions && ConfigSaveSection != NULL) { /* ConfigSaveSection was added in Config API v2.1.0 */
         (*ConfigSaveSection)("UI-Console");
         (*ConfigSaveSection)("Transferpak");
     }
@@ -546,6 +546,10 @@ static int ParseCommandLineInitial(int argc, const char **argv)
             printUsage(argv[0]);
             return 1;
         }
+        else if (strcmp(argv[i], "--nosaveoptions") == 0)
+        {
+            l_SaveOptions = 0;
+        }
     }
 
     return 0;
@@ -592,8 +596,12 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
         }
         else if ((strcmp(argv[i], "--corelib") == 0 || strcmp(argv[i], "--configdir") == 0 ||
                   strcmp(argv[i], "--datadir") == 0) && ArgsLeft >= 1)
-        {   /* these are handled in ParseCommandLineInitial */
+        {   /* already handled in ParseCommandLineInitial (skip the value) */
             i++;
+        }
+        else if (strcmp(argv[i], "--nosaveoptions") == 0)
+        {   /* already handled in ParseCommandLineInitial (no value to skip) */
+            ;
         }
         else if (strcmp(argv[i], "--resolution") == 0 && ArgsLeft >= 1)
         {
@@ -694,10 +702,6 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
         else if (strcmp(argv[i], "--core-compare-recv") == 0)
         {
             l_CoreCompareMode = 2;
-        }
-        else if (strcmp(argv[i], "--nosaveoptions") == 0)
-        {
-            l_SaveOptions = 0;
         }
 #define PARSE_GB_CART_PARAM(param, key) \
         else if (strcmp(argv[i], param) == 0) \

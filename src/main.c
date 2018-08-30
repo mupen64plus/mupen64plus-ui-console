@@ -344,7 +344,10 @@ static m64p_error SaveConfigurationOptions(void)
     if (g_RspPlugin != NULL)
         (*ConfigSetParameter)(l_ConfigUI, "RspPlugin", M64TYPE_STRING, g_RspPlugin);
 
-    return (*ConfigSaveFile)();
+    if ((*ConfigHasUnsavedChanges)(NULL))
+        return (*ConfigSaveFile)();
+    else
+        return M64ERR_SUCCESS;
 }
 
 /*********************************************************************************************************
@@ -1083,8 +1086,8 @@ int main(int argc, char *argv[])
     (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
 
     /* save the configuration file again if --nosaveoptions was not specified, to keep any updated parameters from the core/plugins */
-    if (l_SaveOptions)
-        SaveConfigurationOptions();
+    if (l_SaveOptions && (*ConfigHasUnsavedChanges)(NULL))
+        (*ConfigSaveFile)();
 
     /* Shut down and release the Core library */
     (*CoreShutdown)();

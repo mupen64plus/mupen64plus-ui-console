@@ -73,6 +73,7 @@ extern ptr_ConfigGetParamString   ConfigGetParamString;
 extern ptr_ConfigExternalOpen         ConfigExternalOpen;
 extern ptr_ConfigExternalClose        ConfigExternalClose;
 extern ptr_ConfigExternalGetParameter ConfigExternalGetParameter;
+extern ptr_ConfigHasUnsavedChanges    ConfigHasUnsavedChanges;
 
 extern ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath;
 extern ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath;

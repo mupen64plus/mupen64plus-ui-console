@@ -1065,6 +1065,12 @@ int main(int argc, char *argv[])
 #endif
     }
 
+    /* Save the configuration file again, if necessary, to capture updated
+       parameters from plugins. This is the last opportunity to save changes
+       before the relatively long-running game. */
+    if (l_SaveOptions && (*ConfigHasUnsavedChanges)(NULL))
+        (*ConfigSaveFile)();
+
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);
 

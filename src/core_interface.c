@@ -80,6 +80,7 @@ ptr_ConfigGetParamString   ConfigGetParamString = NULL;
 ptr_ConfigExternalOpen         ConfigExternalOpen = NULL;
 ptr_ConfigExternalClose        ConfigExternalClose = NULL;
 ptr_ConfigExternalGetParameter ConfigExternalGetParameter = NULL;
+ptr_ConfigHasUnsavedChanges    ConfigHasUnsavedChanges = NULL;
 
 ptr_ConfigGetSharedDataFilepath ConfigGetSharedDataFilepath = NULL;
 ptr_ConfigGetUserConfigPath     ConfigGetUserConfigPath = NULL;
@@ -268,6 +269,7 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     ConfigExternalOpen = (ptr_ConfigExternalOpen) osal_dynlib_getproc(CoreHandle, "ConfigExternalOpen");
     ConfigExternalClose = (ptr_ConfigExternalClose) osal_dynlib_getproc(CoreHandle, "ConfigExternalClose");
     ConfigExternalGetParameter = (ptr_ConfigExternalGetParameter) osal_dynlib_getproc(CoreHandle, "ConfigExternalGetParameter");
+    ConfigHasUnsavedChanges = (ptr_ConfigHasUnsavedChanges) osal_dynlib_getproc(CoreHandle, "ConfigHasUnsavedChanges");
 
     ConfigGetSharedDataFilepath = (ptr_ConfigGetSharedDataFilepath) osal_dynlib_getproc(CoreHandle, "ConfigGetSharedDataFilepath");
     ConfigGetUserConfigPath = (ptr_ConfigGetUserConfigPath) osal_dynlib_getproc(CoreHandle, "ConfigGetUserConfigPath");
@@ -337,6 +339,7 @@ m64p_error DetachCoreLib(void)
     ConfigExternalOpen = NULL;
     ConfigExternalClose = NULL;
     ConfigExternalGetParameter = NULL;
+    ConfigHasUnsavedChanges = NULL;
 
     ConfigGetSharedDataFilepath = NULL;
     ConfigGetUserDataPath = NULL;

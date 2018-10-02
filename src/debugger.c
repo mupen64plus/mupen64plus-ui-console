@@ -138,8 +138,8 @@ int debugger_print_registers() {
 
     printf("General Purpose Registers:\n");
     int i;
-    const char *format_padded = "%4s %016X ";
-    const char *format_nopad = "%4s %16X ";
+    const char *format_padded = "%4s %016llX ";
+    const char *format_nopad = "%4s %16llX ";
     for (i = 0; i < 32; ++i) {
         char val_changed = reg_ran_previously && regs[i] != prev_reg_values[i];
 

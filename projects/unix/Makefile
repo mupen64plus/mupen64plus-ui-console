@@ -220,6 +220,9 @@ endif
 ifeq ($(ICONSDIR),)
   ICONSDIR := $(PREFIX)/share/icons/hicolor
 endif
+ifeq ($(ASDIR),)
+  ASDIR := $(PREFIX)/share/metainfo
+endif
 
 SRCDIR = ../../src
 OBJDIR = _obj$(POSTFIX)
@@ -280,6 +283,7 @@ targets:
 	@echo "    MANDIR=path    == path to install mupen64plus manual page (default: PREFIX/share/man)"
 	@echo "    APPSDIR=path   == path to install desktop file (default: PREFIX/share/applications)"
 	@echo "    ICONSDIR=path  == path to install icon files (default: PREFIX/share/icons/hicolor)"
+	@echo "    ASDIR=path     == path to install appstream data files (default: PREFIX/share/metainfo)"
 	@echo "    DESTDIR=path   == path to prepend to all installation paths (only for packagers)"
 	@echo "  Debugging Options:"
 	@echo "    DEBUG=1        == add debugging symbols to application binary"
@@ -303,6 +307,8 @@ install: $(TARGET)
 	$(INSTALL) -m 0644 ../../data/icons/48x48/apps/mupen64plus.png "$(DESTDIR)$(ICONSDIR)/48x48/apps"
 	$(INSTALL) -d "$(DESTDIR)$(ICONSDIR)/scalable/apps"
 	$(INSTALL) -m 0644 ../../data/icons/scalable/apps/mupen64plus.svg "$(DESTDIR)$(ICONSDIR)/scalable/apps"
+	$(INSTALL) -d "$(DESTDIR)$(ASDIR)"
+	$(INSTALL) -m 0644 ../../data/org.mupen64plus.Mupen64Plus.appdata.xml "$(DESTDIR)$(ASDIR)"
 
 
 uninstall:
@@ -310,6 +316,7 @@ uninstall:
 	$(RM) "$(DESTDIR)$(APPSDIR)/mupen64plus.desktop"
 	$(RM) "$(DESTDIR)$(ICONSDIR)/48x48/apps/mupen64plus.png"
 	$(RM) "$(DESTDIR)$(ICONSDIR)/scalable/apps/mupen64plus.svg"
+	$(RM) "$(DESTDIR)$(ASDIR)/org.mupen64plus.Mupen64Plus.appdata.xml"
 
 
 # build dependency files

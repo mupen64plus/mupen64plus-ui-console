@@ -131,6 +131,19 @@ int debugger_read_8(unsigned int addr) {
     return (*DebugMemRead8)(addr);
 }
 
+void debugger_write_64(unsigned int addr, unsigned long long value) {
+    (*DebugMemWrite64)(addr, value);
+}
+void debugger_write_32(unsigned int addr, unsigned int value) {
+    (*DebugMemWrite32)(addr, value);
+}
+void debugger_write_16(unsigned int addr, unsigned short value) {
+    (*DebugMemWrite16)(addr, value);
+}
+void debugger_write_8(unsigned int addr, unsigned char value) {
+    (*DebugMemWrite8)(addr, value);
+}
+
 int debugger_print_registers() {
     unsigned long long int *regs = (unsigned long long int *) (*DebugGetCPUDataPtr)(M64P_CPU_REG_REG);
     if (regs == NULL)
@@ -306,6 +319,46 @@ int debugger_loop(void *arg) {
                     }
                 }
                 printf("\n");
+            }
+        }
+        else if (strncmp(input, "write", 5) == 0) {
+            uint32_t writeAddr, size=1;
+            uint64_t writeVal;
+            char chSize;
+            if (sscanf(input, "write %i %c %llx", &writeAddr, &chSize, &writeVal) == 3 &&
+                (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd')) {
+                if (chSize == 'b') {
+                    size = 1;
+                } else if (chSize == 'h') {
+                    size = 2;
+                } else if (chSize == 'w') {
+                    size = 4;
+                } else {
+                    size = 8;
+                }
+            } else if (sscanf(input, "write %i %llx", &writeAddr, &writeVal) == 2) {
+            } else {
+                printf("Improperly formatted memory write command: '%s'\n", input);
+                continue;
+            }
+
+            switch(size) {
+                case 1:
+                    debugger_write_8(writeAddr, (unsigned char)writeVal);
+                    printf("0x%08x <- 0x%02x\n", writeAddr, (unsigned char)writeVal);
+                    break;
+                case 2:
+                    debugger_write_16(writeAddr, (unsigned short)writeVal);
+                    printf("0x%08x <- 0x%04x\n", writeAddr, (unsigned short)writeVal);
+                    break;
+                case 4:
+                    debugger_write_32(writeAddr, (unsigned int)writeVal);
+                    printf("0x%08x <- 0x%08x\n", writeAddr, (unsigned int)writeVal);
+                    break;
+                case 8:
+                    debugger_write_64(writeAddr, writeVal);
+                    printf("0x%08x <- 0x%016llx\n", writeAddr, writeVal);
+                    break;
             }
         }
         else if (strcmp(input, "bp list") == 0 || strcmp(input, "bp ls") == 0) {

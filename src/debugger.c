@@ -237,7 +237,7 @@ int debugger_loop(void *arg) {
             uint32_t readAddr, length=1, rows=1, size=4;
             uint32_t i, j;
             char chSize;
-            if (sscanf(input, "mem /%ux%u%c %i", &rows, &length, &chSize, &readAddr) == 4 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
+            if (sscanf(input, "mem /%ux%u%c %u", &rows, &length, &chSize, &readAddr) == 4 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
             {
                 if (chSize == 'b')
                     size = 1;
@@ -248,10 +248,10 @@ int debugger_loop(void *arg) {
                 else // chSize == 'd'
                     size = 8;
             }
-            else if (sscanf(input, "mem /%ux%u %i", &rows, &length, &readAddr) == 3)
+            else if (sscanf(input, "mem /%ux%u %u", &rows, &length, &readAddr) == 3)
             {
             }
-            else if (sscanf(input, "mem /%u%c %i", &length, &chSize, &readAddr) == 3 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
+            else if (sscanf(input, "mem /%u%c %u", &length, &chSize, &readAddr) == 3 && (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd'))
             {
                 rows = 1;
                 if (chSize == 'b')
@@ -263,11 +263,11 @@ int debugger_loop(void *arg) {
                 else // chSize == 'd'
                     size = 8;
             }
-            else if (sscanf(input, "mem /%u %i", &length, &readAddr) == 2)
+            else if (sscanf(input, "mem /%u %u", &length, &readAddr) == 2)
             {
                 rows = 1;
             }
-            else if (sscanf(input, "mem %i", &readAddr) == 1)
+            else if (sscanf(input, "mem %u", &readAddr) == 1)
             {
                 rows = 1;
                 length = 1;

@@ -457,6 +457,18 @@ int debugger_loop(void *arg) {
                 printf("Added breakpoint at 0x%08X.\n", addr);
             }
         }
+        else if (strncmp(input, "bp trig", 7) == 0) {
+            uint32_t flags, addr;
+            (*DebugBreakpointTriggeredBy)(&flags, &addr);
+
+            if (flags != 0) {
+                printf("Breakpoint @ PC 0x%08x triggered on 0x%08x [%c%c%c]\n",
+                       cur_pc, addr,
+                       flags & M64P_BKP_FLAG_READ ? 'R' : ' ',
+                       flags & M64P_BKP_FLAG_WRITE ? 'W' : ' ',
+                       flags & M64P_BKP_FLAG_EXEC ? 'X' : ' ');
+            }
+        }
         else if (strncmp(input, "bp rm ", 6) == 0) {
             int index = -1;
             unsigned int addr = 0;

@@ -104,5 +104,7 @@ extern ptr_DebugGetCPUDataPtr     DebugGetCPUDataPtr;
 extern ptr_DebugBreakpointLookup  DebugBreakpointLookup;
 extern ptr_DebugBreakpointCommand DebugBreakpointCommand;
 
+extern ptr_DebugBreakpointTriggeredBy DebugBreakpointTriggeredBy;
+
 #endif /* #define CORE_INTERFACE_H */
 

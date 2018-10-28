@@ -105,6 +105,7 @@ extern ptr_DebugBreakpointLookup  DebugBreakpointLookup;
 extern ptr_DebugBreakpointCommand DebugBreakpointCommand;
 
 extern ptr_DebugBreakpointTriggeredBy DebugBreakpointTriggeredBy;
+extern ptr_DebugVirtualToPhysical     DebugVirtualToPhysical;
 
 #endif /* #define CORE_INTERFACE_H */
 

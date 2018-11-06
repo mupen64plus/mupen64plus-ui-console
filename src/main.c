@@ -1064,6 +1064,12 @@ int main(int argc, char *argv[])
         SDL_CreateThread(debugger_loop, NULL);
 #endif
     }
+    else
+    {
+        /* Set Core config parameter to disable debugger */
+        int bEnableDebugger = 0;
+        (*ConfigSetParameter)(l_ConfigCore, "EnableDebugger", M64TYPE_BOOL, &bEnableDebugger);
+    }
 
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);

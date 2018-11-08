@@ -207,12 +207,12 @@ ifeq ($(ICONSDIR),)
 endif
 
 # set special flags for given Makefile parameters
-# note: COREDIR _must_ end in a slash if you want it to work; not necessary for the others
 ifeq ($(PLUGINDIR),)
-  CFLAGS += '-DPLUGINDIR="$(LIBDIR)"'
+  CFLAGS += '-DPLUGINDIR="$(LIBDIR)/mupen64plus"'
 else
   CFLAGS += '-DPLUGINDIR="$(PLUGINDIR)"'
 endif
+# note: COREDIR _must_ end in a slash if you want it to work; not necessary for the others
 ifeq ($(COREDIR),)
   CFLAGS += '-DCOREDIR="$(LIBDIR)/"'
 else

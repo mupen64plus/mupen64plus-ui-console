@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application>
-  <id type="desktop">mupen64plus.desktop</id>
+<component type="desktop">
+  <id>org.mupen64plus.Mupen64Plus</id>
   <name>Mupen64Plus</name>
   <summary>Nintendo 64 Emulator</summary>
   <metadata_license>CC-BY-SA-3.0</metadata_license>
@@ -12,11 +12,17 @@
     </p>
   </description>
   <url type="homepage">http://mupen64plus.org/</url>
+  <url type="help">http://mupen64plus.org/docs/</url>
   <url type="bugtracker">https://github.com/mupen64plus/mupen64plus-user-issues/issues</url>
+  <url type="donation">https://www.paypal.com/webapps/shoppingcart?flowlogging_id=59a5b20d47d74&mfid=1541895691620_59a5b20d47d74</url>
   <screenshots>
-    <screenshot type="default">https://screenshots.debian.net/screenshots/000/010/356/large.png</screenshot>
+    <screenshot type="default">
+      <image>https://screenshots.debian.net/screenshots/000/010/356/large.png</image>
+      <caption>Command line interface help out</caption>
+    </screenshot>
   </screenshots>
   <releases>
     <release date="2015-04-26" version="2.5"/>
   </releases>
-</application>
+  <developer_name>Mupen64Plus</developer_name>
+</component>

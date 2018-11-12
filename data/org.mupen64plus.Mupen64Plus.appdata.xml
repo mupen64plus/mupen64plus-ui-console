@@ -15,11 +15,10 @@
   <url type="homepage">https://mupen64plus.org/</url>
   <url type="help">https://mupen64plus.org/docs/</url>
   <url type="bugtracker">https://github.com/mupen64plus/mupen64plus-user-issues/issues</url>
-  <url type="donation">https://www.paypal.com/webapps/shoppingcart?flowlogging_id=59a5b20d47d74&mfid=1541895691620_59a5b20d47d74</url>
   <screenshots>
     <screenshot type="default">
       <image>https://screenshots.debian.net/screenshots/000/010/356/large.png</image>
-      <caption>Command line interface help out</caption>
+      <caption>Command line interface usage help</caption>
     </screenshot>
   </screenshots>
   <releases>

@@ -372,43 +372,49 @@ int debugger_loop(void *arg) {
             unsigned int flags;
             for (i = 0; i < num_breakpoints; i++) {
                 flags = breakpoints[i].flags;
-                printf("[%d] 0x%08X [%c%c%c]",
-                       i, breakpoints[i].address,
-                       flags & M64P_BKP_FLAG_READ ? 'R' : ' ',
-                       flags & M64P_BKP_FLAG_WRITE ? 'W' : ' ',
-                       flags & M64P_BKP_FLAG_EXEC ? 'X' : ' ');
+                if (breakpoints[i].address == breakpoints[i].endaddr) {
+                    printf("[%d] 0x%08X [%c%c%c]",
+                           i, breakpoints[i].address,
+                           flags & M64P_BKP_FLAG_READ ? 'R' : ' ',
+                           flags & M64P_BKP_FLAG_WRITE ? 'W' : ' ',
+                           flags & M64P_BKP_FLAG_EXEC ? 'X' : ' ');
+                } else {
+                    printf("[%d] 0x%08X - 0x%08X [%c%c%c]",
+                           i, breakpoints[i].address, breakpoints[i].endaddr,
+                           flags & M64P_BKP_FLAG_READ ? 'R' : ' ',
+                           flags & M64P_BKP_FLAG_WRITE ? 'W' : ' ',
+                           flags & M64P_BKP_FLAG_EXEC ? 'X' : ' ');
+                }
+
                 if ((breakpoints[i].flags & M64P_BKP_FLAG_ENABLED) == 0)
                     printf(" (Disabled)");
                 printf("\n");
             }
         }
         else if (strncmp(input, "bp add ", 7) == 0) {
-            unsigned int value = 0;
-            if (strcmp(input, "bp add pc") == 0)
-                value = cur_pc;
-            else if (strncmp(input, "bp add 0x", 9) == 0) {
-                sscanf(input, "bp add 0x%x", &value);
-                if (value == 0)
-                    sscanf(input, "bp add 0x%X", &value);
-            }
-            else {
-                 sscanf(input, "bp add %x", &value);
-                 if (value == 0)
-                     sscanf(input, "bp add %X", &value);
+            uint32_t addr, size = 0, flags = M64P_BKP_FLAG_READ |
+                                             M64P_BKP_FLAG_WRITE |
+                                             M64P_BKP_FLAG_EXEC;
+            if (strcmp(input, "bp add pc") == 0) {
+                addr = cur_pc;
+            } else if (sscanf(input, "bp add %i %i %i", &addr, &size, &flags) == 3) {
+            } else if (sscanf(input, "bp add %i %i", &addr, &size) == 2) {
+            } else if (sscanf(input, "bp add %i", &addr) == 1) {
+            } else {
+                printf("Improperly formatted breakpoint add command: '%s'\n", input);
+                continue;
             }
 
-            if (value == 0) {
+            if (addr == 0) {
                 printf("Invalid breakpoint address.\n");
                 continue;
             }
 
             m64p_breakpoint bkpt;
-            bkpt.address = value;
-            bkpt.endaddr = value;
+            bkpt.address = addr;
+            bkpt.endaddr = addr + size;
             bkpt.flags = M64P_BKP_FLAG_ENABLED |
-                         M64P_BKP_FLAG_READ |
-                         M64P_BKP_FLAG_WRITE |
-                         M64P_BKP_FLAG_EXEC |
+                         flags |
                          M64P_BKP_FLAG_LOG;
             int numBkps =
                 (*DebugBreakpointCommand)(M64P_BKP_CMD_ADD_STRUCT, 0, &bkpt);
@@ -419,7 +425,11 @@ int debugger_loop(void *arg) {
 
             breakpoints[num_breakpoints] = bkpt;
             num_breakpoints++;
-            printf("Added breakpoint at 0x%08X.\n", value);
+            if (size > 0) {
+                printf("Added breakpoint at range [0x%08X to 0x%08X].\n", addr, addr + size);
+            } else {
+                printf("Added breakpoint at 0x%08X.\n", addr);
+            }
         }
         else if (strncmp(input, "bp rm ", 6) == 0) {
             int index = -1;

@@ -249,9 +249,9 @@ int debugger_loop(void *arg) {
             if (sscanf(input, "asm %i %i %i", &addr, &size, &flags) == 3) {
             } else if (sscanf(input, "asm %i %i", &addr, &size) == 2) {
             } else if (sscanf(input, "asm %i", &addr) == 1) {
-            } else if (strcmp(input, "asm")) {
+            } else if (strcmp(input, "asm") == 0) {
             } else {
-                printf("Improperly formatted diassembly command: '%s'\n", input);
+                printf("Improperly formatted disassembly command: '%s'\n", input);
                 continue;
             }
             addr &= ~0x03; // align to 4 byte boundary

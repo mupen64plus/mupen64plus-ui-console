@@ -178,14 +178,11 @@ int debugger_print_registers() {
     return 0;
 }
 
-char *debugger_decode_op(unsigned int instruction, int instruction_addr,
-                         char *output) {
-    if (output == NULL)
-        output = (char *) calloc(40, sizeof(char));
-
-    (*DebugDecodeOp)(instruction, output, output + 10, instruction_addr);
-    return output;
-}
+typedef enum {
+    M64P_ASM_FLAG_INDEX = 0x01,
+    M64P_ASM_FLAG_ADDR = 0x02,
+    M64P_ASM_FLAG_BINARY = 0x04
+} disassembly_flags;
 
 /*
  * Debugger main loop
@@ -240,11 +237,40 @@ int debugger_loop(void *arg) {
         else if (strcmp(input, "pc-1") == 0) {
             printf("Previous PC: %08X\n", debugger_get_prev_pc());
         }
-        else if (strcmp(input, "asm") == 0) {
-            char decoded[64];
-            debugger_decode_op(debugger_read_32(cur_pc), cur_pc, decoded);
-            printf("%s", decoded);
-            printf(" %s\n", decoded + 10);
+        else if (strncmp(input, "asm", 3) == 0) {
+            // simple linear sweep disassembly
+            uint32_t addr = cur_pc, size=1, flags;
+
+            int i;
+            uint32_t lookupAddr, lookupData;
+            char op[64];
+            char args[64];
+
+            if (sscanf(input, "asm %i %i %i", &addr, &size, &flags) == 3) {
+            } else if (sscanf(input, "asm %i %i", &addr, &size) == 2) {
+            } else if (sscanf(input, "asm %i", &addr) == 1) {
+            } else if (strcmp(input, "asm")) {
+            } else {
+                printf("Improperly formatted diassembly command: '%s'\n", input);
+                continue;
+            }
+            addr &= ~0x03; // align to 4 byte boundary
+            printf("Disassembly of %d instruction%s @ 0x%08x:\n", size, (size == 1 ? "" : "s"), addr);
+            for (i = 0; i < size; i++) {
+                lookupAddr = addr + (i * 4);
+                lookupData = debugger_read_32(lookupAddr);
+                (*DebugDecodeOp)(lookupData, op, args, lookupAddr);
+                if (flags & M64P_ASM_FLAG_INDEX) { // 0x01
+                    printf("% 3d ", i);
+                }
+                if (flags & M64P_ASM_FLAG_ADDR) { // 0x02
+                    printf("%08x ", lookupAddr);
+                }
+                if (flags & M64P_ASM_FLAG_BINARY) { // 0x04
+                    printf("[%08x] ", lookupData);
+                }
+                printf("%s %s\n", op, args);
+            }
         }
         else if (strncmp(input, "mem", 3) == 0) {
             uint32_t readAddr, length=1, rows=1, size=4;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
   <id>org.mupen64plus.Mupen64Plus</id>
-  <launchable type="desktop-id">org.mupen64plus.Mupen64Plus</launchable>
+  <launchable type="desktop-id">org.mupen64plus.Mupen64Plus.desktop</launchable>
   <name>Mupen64Plus</name>
   <summary>Nintendo 64 Emulator</summary>
   <metadata_license>CC-BY-SA-3.0</metadata_license>

@@ -466,6 +466,15 @@ int debugger_loop(void *arg) {
             } else {
                 printf("Added breakpoint at 0x%08X.\n", addr);
             }
+
+            if (flags & (M64P_BKP_FLAG_READ | M64P_BKP_FLAG_WRITE)) {
+                // setting a memory read/write breakpoint -- warn if physical address differs from the user input
+                uint32_t phys_addr = (*DebugVirtualToPhysical)(addr);
+                if (phys_addr != 0 && addr != phys_addr) {
+                    printf("Warning: Physical address %08x != virtual address %08x for memory read/write breakpoint.\n",
+                            phys_addr, addr);
+                }
+            }
         }
         else if (strncmp(input, "bp trig", 7) == 0) {
             uint32_t flags, addr;

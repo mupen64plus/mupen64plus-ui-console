@@ -111,6 +111,9 @@ ptr_DebugGetCPUDataPtr     DebugGetCPUDataPtr = NULL;
 ptr_DebugBreakpointLookup  DebugBreakpointLookup = NULL;
 ptr_DebugBreakpointCommand DebugBreakpointCommand = NULL;
 
+ptr_DebugBreakpointTriggeredBy DebugBreakpointTriggeredBy = NULL;
+ptr_DebugVirtualToPhysical     DebugVirtualToPhysical = NULL;
+
 /* global variables */
 m64p_dynlib_handle CoreHandle = NULL;
 
@@ -299,6 +302,9 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     DebugBreakpointLookup = (ptr_DebugBreakpointLookup) osal_dynlib_getproc(CoreHandle, "DebugBreakpointLookup");
     DebugBreakpointCommand = (ptr_DebugBreakpointCommand) osal_dynlib_getproc(CoreHandle, "DebugBreakpointCommand");
 
+    DebugBreakpointTriggeredBy = (ptr_DebugBreakpointTriggeredBy) osal_dynlib_getproc(CoreHandle, "DebugBreakpointTriggeredBy");
+    DebugVirtualToPhysical = (ptr_DebugVirtualToPhysical) osal_dynlib_getproc(CoreHandle, "DebugVirtualToPhysical");
+
     return M64ERR_SUCCESS;
 }
 
@@ -365,6 +371,9 @@ m64p_error DetachCoreLib(void)
     DebugGetCPUDataPtr = NULL;
     DebugBreakpointLookup = NULL;
     DebugBreakpointCommand = NULL;
+
+    DebugBreakpointTriggeredBy = NULL;
+    DebugVirtualToPhysical = NULL;
 
     /* detach the shared library */
     osal_dynlib_close(CoreHandle);

@@ -239,7 +239,7 @@ int debugger_loop(void *arg) {
         }
         else if (strncmp(input, "asm", 3) == 0) {
             // simple linear sweep disassembly
-            uint32_t addr = cur_pc, size=1, flags;
+            uint32_t addr = cur_pc, size=1, flags=0;
 
             int i;
             uint32_t lookupAddr, lookupData;
@@ -359,7 +359,7 @@ int debugger_loop(void *arg) {
         }
         else if (strncmp(input, "write", 5) == 0) {
             uint32_t writeAddr, size=1;
-            uint64_t writeVal;
+            long long unsigned int writeVal;
             char chSize;
             if (sscanf(input, "write %i %c %llx", &writeAddr, &chSize, &writeVal) == 3 &&
                 (chSize == 'b' || chSize == 'h' || chSize == 'w' || chSize == 'd')) {

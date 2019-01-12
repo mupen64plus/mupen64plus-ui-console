@@ -344,7 +344,10 @@ static m64p_error SaveConfigurationOptions(void)
     if (g_RspPlugin != NULL)
         (*ConfigSetParameter)(l_ConfigUI, "RspPlugin", M64TYPE_STRING, g_RspPlugin);
 
-    return (*ConfigSaveFile)();
+    if ((*ConfigHasUnsavedChanges)(NULL))
+        return (*ConfigSaveFile)();
+    else
+        return M64ERR_SUCCESS;
 }
 
 /*********************************************************************************************************
@@ -1071,6 +1074,12 @@ int main(int argc, char *argv[])
         (*ConfigSetParameter)(l_ConfigCore, "EnableDebugger", M64TYPE_BOOL, &bEnableDebugger);
     }
 
+    /* Save the configuration file again, if necessary, to capture updated
+       parameters from plugins. This is the last opportunity to save changes
+       before the relatively long-running game. */
+    if (l_SaveOptions && (*ConfigHasUnsavedChanges)(NULL))
+        (*ConfigSaveFile)();
+
     /* run the game */
     (*CoreDoCommand)(M64CMD_EXECUTE, 0, NULL);
 
@@ -1083,8 +1092,8 @@ int main(int argc, char *argv[])
     (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
 
     /* save the configuration file again if --nosaveoptions was not specified, to keep any updated parameters from the core/plugins */
-    if (l_SaveOptions)
-        SaveConfigurationOptions();
+    if (l_SaveOptions && (*ConfigHasUnsavedChanges)(NULL))
+        (*ConfigSaveFile)();
 
     /* Shut down and release the Core library */
     (*CoreShutdown)();

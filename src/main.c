@@ -524,7 +524,8 @@ static int ParseCommandLineInitial(int argc, const char **argv)
 {
     int i;
 
-    /* look through commandline options */
+    /* First phase of command line parsing: read parameters that affect the
+       core and the ui-console behavior. */
     for (i = 1; i < argc; i++)
     {
         int ArgsLeft = argc - i - 1;
@@ -558,11 +559,12 @@ static int ParseCommandLineInitial(int argc, const char **argv)
     return 0;
 }
 
-static m64p_error ParseCommandLineFinal(int argc, const char **argv)
+static m64p_error ParseCommandLineMain(int argc, const char **argv)
 {
     int i;
 
-    /* parse commandline options */
+    /* Second phase of command-line parsing: read all remaining parameters
+       except for those that set plugin options. */
     for (i = 1; i < argc; i++)
     {
         int ArgsLeft = argc - i - 1;
@@ -690,8 +692,7 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
         }
         else if (strcmp(argv[i], "--set") == 0 && ArgsLeft >= 1)
         {
-            if (SetConfigParameter(argv[i+1]) != 0)
-                return M64ERR_INPUT_INVALID;
+            /* skip this: it will be handled in ParseCommandLinePlugin */
             i++;
         }
         else if (strcmp(argv[i], "--debug") == 0)
@@ -751,6 +752,24 @@ static m64p_error ParseCommandLineFinal(int argc, const char **argv)
     /* missing ROM filepath */
     DebugMessage(M64MSG_ERROR, "no ROM filepath given");
     return M64ERR_INPUT_INVALID;
+}
+
+static m64p_error ParseCommandLinePlugin(int argc, const char **argv)
+{
+    int i;
+
+    /* Third phase of command-line parsing: read all plugin parameters. */
+    for (i = 1; i < argc; i++)
+    {
+        int ArgsLeft = argc - i - 1;
+        if (strcmp(argv[i], "--set") == 0 && ArgsLeft >= 1)
+        {
+            if (SetConfigParameter(argv[i+1]) != 0)
+                return M64ERR_INPUT_INVALID;
+            i++;
+        }
+    }
+    return M64ERR_SUCCESS;
 }
 
 static char* media_loader_get_filename(void* cb_data, m64p_handle section_handle, const char* section, const char* key)
@@ -913,8 +932,8 @@ int main(int argc, char *argv[])
         return 4;
     }
 
-    /* parse command-line options */
-    rval = ParseCommandLineFinal(argc, (const char **) argv);
+    /* parse non-plugin command-line options */
+    rval = ParseCommandLineMain(argc, (const char **) argv);
     if (rval != M64ERR_SUCCESS)
     {
         (*CoreShutdown)();
@@ -1007,6 +1026,17 @@ int main(int argc, char *argv[])
         (*CoreShutdown)();
         DetachCoreLib();
         return 12;
+    }
+
+    /* Parse and set plugin options. Doing this after loading the plugins
+       allows the plugins to set up their own defaults first. */
+    rval = ParseCommandLinePlugin(argc, (const char **) argv);
+    if (rval != M64ERR_SUCCESS)
+    {
+        (*CoreDoCommand)(M64CMD_ROM_CLOSE, 0, NULL);
+        (*CoreShutdown)();
+        DetachCoreLib();
+        return 5;
     }
 
     /* attach plugins to core */

@@ -1018,6 +1018,17 @@ int main(int argc, char *argv[])
         return 11;
     }
 
+    /* Startup optimization:
+       Initializing the joystick subsystem is slow; input-sdl does it twice
+       unless the subsystem is already initialized, so do it first here. */
+    if (strncmp(
+                ConfigGetParamString(l_ConfigUI, "InputPlugin"),
+                "mupen64plus-input-sdl",
+                strlen("mupen64plus-input-sdl")
+               ) == 0)
+        if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) == 1)
+            DebugMessage(M64MSG_ERROR, "Couldn't init SDL joystick subsystem: %s", SDL_GetError() );
+
     /* search for and load plugins */
     rval = PluginSearchLoad(l_ConfigUI);
     if (rval != M64ERR_SUCCESS)

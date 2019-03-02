@@ -220,9 +220,9 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
     }
     int ConfigAPIVersion, DebugAPIVersion, VidextAPIVersion;
     (*CoreAPIVersionFunc)(&ConfigAPIVersion, &DebugAPIVersion, &VidextAPIVersion, NULL);
-    if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000))
+    if ((ConfigAPIVersion & 0xffff0000) != (CONFIG_API_VERSION & 0xffff0000) || ConfigAPIVersion < CONFIG_API_VERSION)
     {
-        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Emulator core '%s' incompatible; Config API major version %i.%i.%i doesn't match application: %i.%i.%i",
+        DebugMessage(M64MSG_ERROR, "AttachCoreLib() Error: Emulator core '%s' incompatible; Config API version %i.%i.%i doesn't match application: %i.%i.%i",
                 CoreLibFilepath, VERSION_PRINTF_SPLIT(ConfigAPIVersion), VERSION_PRINTF_SPLIT(CONFIG_API_VERSION));
         osal_dynlib_close(CoreHandle);
         CoreHandle = NULL;

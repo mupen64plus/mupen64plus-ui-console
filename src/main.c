@@ -159,8 +159,9 @@ static void FrameCallback(unsigned int FrameIndex)
     }
 }
 
+static char *formatstr(const char *fmt, ...) ATTR_FMT(1, 2);
 
-static char *formatstr(const char *fmt, ...)
+char *formatstr(const char *fmt, ...)
 {
 	int size = 128, ret;
 	char *str = (char *)malloc(size), *newstr;

@@ -388,6 +388,7 @@ static void printUsage(const char *progname)
            "    --core-compare-send    : use the Core Comparison debugging feature, in data sending mode\n"
            "    --core-compare-recv    : use the Core Comparison debugging feature, in data receiving mode\n"
            "    --nosaveoptions        : do not save the given command-line options in configuration file\n"
+           "    --pif (filepath)       : use a binary PIF ROM (filepath) instead of HLE PIF\n"
            "    --verbose              : print lots of information\n"
            "    --help                 : see this help message\n\n"
            "(plugin-spec):\n"
@@ -731,6 +732,30 @@ static m64p_error ParseCommandLineMain(int argc, const char **argv)
         else if (strcmp(argv[i], "--dd-disk") == 0)
         {
             ConfigSetParameter(l_Config64DD, "Disk", M64TYPE_STRING, argv[i+1]);
+            i++;
+        }
+        else if (strcmp(argv[i], "--pif") == 0)
+        {
+            m64p_error pif_status = M64ERR_INVALID_STATE;
+            /* load PIF image */
+            FILE *pifPtr = fopen(argv[i+1], "rb");
+            if (pifPtr != NULL)
+            {
+                unsigned char *PIF_buffer = (unsigned char *) malloc(2048);
+                if (PIF_buffer != NULL)
+                {
+                    if (fread(PIF_buffer, 1, 2048, pifPtr) == 2048)
+                    {
+                        pif_status = (*CoreDoCommand)(M64CMD_PIF_OPEN, 2048, PIF_buffer);
+                    }
+                    free(PIF_buffer);
+                }
+                fclose(pifPtr);
+            }
+            if (pif_status != M64ERR_SUCCESS)
+            {
+                DebugMessage(M64MSG_ERROR, "core failed to open PIF ROM file '%s'.", argv[i+1]);
+            }
             i++;
         }
         else if (ArgsLeft == 0)

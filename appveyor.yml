@@ -25,6 +25,7 @@ after_build:
   - copy ..\..\mupen64plus-win32-deps\freetype-2.10.1\lib\%rev2%\*.dll .
   - copy ..\..\mupen64plus-win32-deps\libpng-1.6.37\lib\%rev2%\*.dll .
   - copy ..\..\mupen64plus-win32-deps\SDL2-2.0.10\lib\%rev2%\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2_net-2.0.1\lib\%rev2%\*.dll .
   - copy ..\..\mupen64plus-win32-deps\zlib-1.2.11\lib\%rev2%\*.dll .
   - 7z a -t7z ..\build\%filepkg%.7z *
 

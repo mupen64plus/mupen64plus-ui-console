@@ -51,6 +51,8 @@
 #include xstr(VIDEXT_HEADER)
 #endif
 
+#define PIF_ROM_SIZE 2048
+
 /* Version number for UI-Console config section parameters */
 #define CONFIG_PARAM_VERSION     1.00
 
@@ -741,12 +743,12 @@ static m64p_error ParseCommandLineMain(int argc, const char **argv)
             FILE *pifPtr = fopen(argv[i+1], "rb");
             if (pifPtr != NULL)
             {
-                unsigned char *PIF_buffer = (unsigned char *) malloc(2048);
+                unsigned char *PIF_buffer = (unsigned char *) malloc(PIF_ROM_SIZE);
                 if (PIF_buffer != NULL)
                 {
-                    if (fread(PIF_buffer, 1, 2048, pifPtr) == 2048)
+                    if (fread(PIF_buffer, 1, PIF_ROM_SIZE, pifPtr) == PIF_ROM_SIZE)
                     {
-                        pif_status = (*CoreDoCommand)(M64CMD_PIF_OPEN, 2048, PIF_buffer);
+                        pif_status = (*CoreDoCommand)(M64CMD_PIF_OPEN, PIF_ROM_SIZE, PIF_buffer);
                     }
                     free(PIF_buffer);
                 }

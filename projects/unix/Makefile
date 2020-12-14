@@ -67,11 +67,14 @@ ifneq ("$(filter pentium i%86,$(HOST_CPU))","")
   ARCH_DETECTED := 32BITS
 endif
 
+SRCDIR = ../../src
+OBJDIR = _obj$(POSTFIX
+
 # base CFLAGS, LDLIBS, and LDFLAGS
 OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall
 
-CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -I../../src
+CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -I$(SRCDIR)
 ifeq ($(OS), MINGW)
   CFLAGS += -lpthread
   LDLIBS += -lpthread
@@ -303,13 +306,13 @@ install: $(TARGET)
 	$(INSTALL) -d "$(DESTDIR)$(BINDIR)"
 	$(INSTALL) -m 0755 $(INSTALL_STRIP_FLAG) $(TARGET) "$(DESTDIR)$(BINDIR)"
 	$(INSTALL) -d "$(DESTDIR)$(MANDIR)/man6"
-	$(INSTALL) -m 0644 ../../doc/mupen64plus.6 "$(DESTDIR)$(MANDIR)/man6"
+	$(INSTALL) -m 0644 $(SRCDIR)/../doc/mupen64plus.6 "$(DESTDIR)$(MANDIR)/man6"
 	$(INSTALL) -d "$(DESTDIR)$(APPSDIR)"
-	$(INSTALL) -m 0644 ../../data/mupen64plus.desktop "$(DESTDIR)$(APPSDIR)"
+	$(INSTALL) -m 0644 $(SRCDIR)/../data/mupen64plus.desktop "$(DESTDIR)$(APPSDIR)"
 	$(INSTALL) -d "$(DESTDIR)$(ICONSDIR)/48x48/apps"
-	$(INSTALL) -m 0644 ../../data/icons/48x48/apps/mupen64plus.png "$(DESTDIR)$(ICONSDIR)/48x48/apps"
+	$(INSTALL) -m 0644 $(SRCDIR)/../data/icons/48x48/apps/mupen64plus.png "$(DESTDIR)$(ICONSDIR)/48x48/apps"
 	$(INSTALL) -d "$(DESTDIR)$(ICONSDIR)/scalable/apps"
-	$(INSTALL) -m 0644 ../../data/icons/scalable/apps/mupen64plus.svg "$(DESTDIR)$(ICONSDIR)/scalable/apps"
+	$(INSTALL) -m 0644 $(SRCDIR)/../data/icons/scalable/apps/mupen64plus.svg "$(DESTDIR)$(ICONSDIR)/scalable/apps"
 
 
 uninstall:

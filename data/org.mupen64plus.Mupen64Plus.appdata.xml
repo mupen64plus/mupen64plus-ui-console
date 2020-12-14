@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.mupen64plus.Mupen64Plus</id>
+  <launchable type="desktop-id">org.mupen64plus.Mupen64Plus.desktop</launchable>
+  <name>Mupen64Plus</name>
+  <summary>Nintendo 64 Emulator</summary>
+  <metadata_license>CC-BY-SA-3.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <description>
+    <p>
+      Mupen64plus is a Nintendo 64 Emulator.
+      This package includes all the plug-ins.
+    </p>
+  </description>
+  <url type="homepage">https://mupen64plus.org/</url>
+  <url type="help">https://mupen64plus.org/docs/</url>
+  <url type="bugtracker">https://github.com/mupen64plus/mupen64plus-user-issues/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://screenshots.debian.net/screenshots/000/010/356/large.png</image>
+      <caption>Command line interface usage help</caption>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release date="2015-04-26" version="2.5"/>
+  </releases>
+  <developer_name>Mupen64Plus</developer_name>
+</component>

@@ -1,34 +1,35 @@
 version: 1.0.{build}
 
-configuration:
-  - Release
-platform:
-  - Win32
-  - x64
-
 before_build:
   - git clone --depth 1 https://github.com/mupen64plus/mupen64plus-win32-deps.git ..\mupen64plus-win32-deps
   - git clone --depth 1 https://github.com/mupen64plus/mupen64plus-core.git ..\mupen64plus-core
 
 build_script:
-  - msbuild projects\msvc\mupen64plus-ui-console.vcxproj /p:Configuration=%configuration%;Platform=%platform%
+  - msbuild projects\msvc\mupen64plus-ui-console.vcxproj /p:Configuration=Release;Platform=x64
+  - msbuild projects\msvc\mupen64plus-ui-console.vcxproj /p:Configuration=Release;Platform=Win32
 
 after_build:
-  - ps: $env:rev1 = git describe --tags
-  - set rev2=%platform%
-  - if "%rev2%"=="Win32" set rev2=x86
-  - set filepkg=mupen64plus-ui-console_v%rev1%_%rev2%
-  - md tdata
-  - cd tdata
-  - copy ..\projects\msvc\%platform%\%configuration%\*.exe .
+  - ps: $env:rev = git describe --tags
+  - md tdata_x64 tdata_x86
+  - cd tdata_x64
+  - copy ..\projects\msvc\x64\Release\*.exe .
   - copy ..\..\mupen64plus-core\data\* .
-  - copy ..\..\mupen64plus-win32-deps\freetype-2.10.1\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\libpng-1.6.37\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\SDL2-2.0.10\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\SDL2_net-2.0.1\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\zlib-1.2.11\lib\%rev2%\*.dll .
-  - 7z a -t7z ..\build\%filepkg%.7z *
+  - copy ..\..\mupen64plus-win32-deps\freetype-2.10.1\lib\x64\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\libpng-1.6.37\lib\x64\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2-2.0.10\lib\x64\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2_net-2.0.1\lib\x64\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\zlib-1.2.11\lib\x64\*.dll .
+  - 7z a -t7z "..\build\mupen64plus-ui-console_v%rev%_x64.7z" *
+  - cd ..\tdata_x86
+  - copy ..\projects\msvc\Win32\Release\*.exe .
+  - copy ..\..\mupen64plus-core\data\* .
+  - copy ..\..\mupen64plus-win32-deps\freetype-2.10.1\lib\x86\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\libpng-1.6.37\lib\x86\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2-2.0.10\lib\x86\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2_net-2.0.1\lib\x86\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\zlib-1.2.11\lib\x86\*.dll .
+  - 7z a -t7z "..\build\mupen64plus-ui-console_v%rev%_x86.7z" *
 
 artifacts:
-  - path: build\$(filepkg).7z
-    name: $(filepkg)
+  - path: build\*.7z
+    name: UI console and deps

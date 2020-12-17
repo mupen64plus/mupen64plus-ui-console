@@ -175,18 +175,22 @@ MKDIR ?= mkdir -p
 COMPILE.c = $(Q_CC)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c
 LINK.o = $(Q_LD)$(CC) $(CFLAGS) $(LDFLAGS) $(TARGET_ARCH)
 
+ifndef PIE
+  ifeq ($(CC),$(CROSS_COMPILE)gcc)
+    # check if PIE is the default for the compiler
+    PIE_DEFAULT = $(shell $(CC) -v 2>&1 | grep enable-default-pie)
+    ifeq ($(PIE_DEFAULT),)
+      PIE = 1
+    endif
+  endif
+endif
+
 ifeq ($(PIE), 1)
   CFLAGS += -fPIE
   LDFLAGS += -pie
 else
   CFLAGS += -fno-PIE
-  ifeq ($(CC),$(CROSS_COMPILE)gcc)
-    # check if PIE is the default for the compiler
-    PIE_DEFAULT = $(shell $(CC) -v 2>&1 | grep enable-default-pie)
-    ifneq ($(PIE_DEFAULT),)
-      LDFLAGS += -no-pie
-    endif
-  endif
+  LDFLAGS += -no-pie
 endif
 
 # set installation options

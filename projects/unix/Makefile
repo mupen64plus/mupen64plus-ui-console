@@ -185,12 +185,16 @@ ifndef PIE
   endif
 endif
 
-ifeq ($(PIE), 1)
-  CFLAGS += -fPIE
-  LDFLAGS += -pie
-else
-  CFLAGS += -fno-PIE
-  LDFLAGS += -no-pie
+ifdef PIE
+  ifeq ($(PIE), 1)
+    CFLAGS += -fPIE
+    LDFLAGS += -pie
+  else ifeq ($(PIE), 0)
+    CFLAGS += -fno-PIE
+    LDFLAGS += -no-pie
+  else
+    $(error Invalid PIE value.)
+  endif
 endif
 
 # set installation options

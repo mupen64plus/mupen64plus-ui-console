@@ -193,6 +193,20 @@ else
   LDFLAGS += -no-pie
 endif
 
+ifdef PIE
+  ifeq ($(PIE), 1)
+    CFLAGS += -fPIE
+    LDFLAGS += -pie
+  else
+    ifeq ($(PIE), 0)
+      CFLAGS += -fno-PIE
+      LDFLAGS += -no-pie
+    else
+      $(error Invalid PIE value.)
+    endif
+  endif
+endif
+
 # set installation options
 ifeq ($(PREFIX),)
   PREFIX := /usr/local

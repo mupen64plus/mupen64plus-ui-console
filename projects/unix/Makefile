@@ -185,14 +185,6 @@ ifndef PIE
   endif
 endif
 
-ifeq ($(PIE), 1)
-  CFLAGS += -fPIE
-  LDFLAGS += -pie
-else
-  CFLAGS += -fno-PIE
-  LDFLAGS += -no-pie
-endif
-
 ifdef PIE
   ifeq ($(PIE), 1)
     CFLAGS += -fPIE

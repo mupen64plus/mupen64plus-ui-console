@@ -134,7 +134,6 @@ ifeq ($(ARCH_DETECTED), 64BITS_32)
   endif
   ifneq ($(OS), OSX)
     ifeq ($(OS), MINGW)
-      CFLAGS += -march=i686
       LDFLAGS += -Wl,-m,i386pe
     else
       CFLAGS += -m32
@@ -145,7 +144,6 @@ endif
 
 ifeq ($(ARCH_DETECTED), 64BITS)
   ifeq ($(OS), MINGW)
-    CFLAGS += -march=x86-64
     LDFLAGS += -Wl,-m,i386pep
   endif
 endif

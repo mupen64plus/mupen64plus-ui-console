@@ -1,5 +1,21 @@
 version: 1.0.{build}
 
+image: Visual Studio 2022
+
+skip_commits:
+  files:
+    - '**/*.md'
+    - .github/
+    - data/*
+    - .gitattributes
+    - .gitignore
+    - .travis.yml
+    - README
+
+branches:
+  except:
+    - nightly-build
+
 configuration:
   - Release
 platform:
@@ -7,6 +23,7 @@ platform:
   - x64
 
 before_build:
+  - git tag --delete nightly-build
   - git clone --depth 1 https://github.com/mupen64plus/mupen64plus-win32-deps.git ..\mupen64plus-win32-deps
   - git clone --depth 1 https://github.com/mupen64plus/mupen64plus-core.git ..\mupen64plus-core
 
@@ -22,11 +39,11 @@ after_build:
   - cd tdata
   - copy ..\projects\msvc\%platform%\%configuration%\*.exe .
   - copy ..\..\mupen64plus-core\data\* .
-  - copy ..\..\mupen64plus-win32-deps\freetype-2.10.1\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\libpng-1.6.37\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\SDL2-2.0.10\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\SDL2_net-2.0.1\lib\%rev2%\*.dll .
-  - copy ..\..\mupen64plus-win32-deps\zlib-1.2.11\lib\%rev2%\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\freetype-2.12.1\lib\%rev2%\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\libpng-1.6.38\lib\%rev2%\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2-2.24.0\lib\%rev2%\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\SDL2_net-2.2.0\lib\%rev2%\*.dll .
+  - copy ..\..\mupen64plus-win32-deps\zlib-1.2.12\lib\%rev2%\*.dll .
   - 7z a -t7z ..\build\%filepkg%.7z *
 
 artifacts:

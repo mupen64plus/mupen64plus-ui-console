@@ -11,7 +11,10 @@ on:
       - '**/*.md'
       - '.{gitattributes,gitignore,travis.yml}'
       - 'appveyor.yml,README'
+  schedule:
+    - cron: '50 14 21 * *'
   workflow_dispatch:
+
 jobs:
 
   Linux:
@@ -33,14 +36,16 @@ jobs:
             bits: 32
     name: Linux / ${{ matrix.cc }} / ${{ matrix.platform }}
     runs-on: ubuntu-22.04
+    if: (github.event_name == 'schedule' && github.repository == 'mupen64plus/mupen64plus-ui-console') || (github.event_name != 'schedule')
     steps:
       - uses: actions/checkout@v3
       - name: Get build dependencies and arrange the environment
         run: |
-          if [[ "${{ matrix.platform }}" == "x86" ]]; then sudo dpkg --add-architecture i386; fi
+          echo "G_REV=$(git rev-parse --short HEAD)" >> "${GITHUB_ENV}"
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then sudo dpkg --add-architecture i386; fi
           sudo apt-get update
           sudo apt-get -y install libsdl1.2-dev libsdl2-dev
-          if [[ "${{ matrix.platform }}" == "x86" ]]; then
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then
             sudo apt-get --reinstall -y install gcc-multilib g++-multilib libc6 libc6-dev-i386 libsdl1.2debian:i386 libsdl2-2.0-0:i386
             LINK="sudo ln -s -T"
             cd /usr/lib/i386-linux-gnu
@@ -50,27 +55,23 @@ jobs:
             if ! [[ -f _real_SDL_config.h ]]; then ${LINK} ../x86_64-linux-gnu/SDL2/_real_SDL_config.h _real_SDL_config.h; fi
           fi
           sudo ldconfig
-      - name: Build and related stuff
+      - name: Build and related stuff, backup binaries
         run: |
-          if [[ ${{ matrix.bits }} -eq 32 ]]; then export OPTFLAGS="-O2 -flto -mtune=pentium4"; else export OPTFLAGS="-O2 -flto -mtune=core2"; fi
-          G_REV=$(git rev-parse --short HEAD)
-          echo "G_REV=${G_REV}" >> "${GITHUB_ENV}"
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then export PIE="1" CPU_TUNE="-msse2 -mtune=pentium4"; else CPU_TUNE="-mtune=core2"; fi
+          export OPTFLAGS="-O2 -flto ${CPU_TUNE}"
           ORIG="$(pwd)"
-          if [[ "${{ matrix.cc }}" == "GCC" ]]; then
-            CC="gcc"
-            CXX="g++"
-          else
+          CC="gcc"
+          CXX="g++"
+          if [[ "${{ matrix.cc }}" != "GCC" ]]; then
             CC="clang"
             CXX="clang++"
           fi
-          if [[ ${{ matrix.bits }} -eq 32 ]]; then export PIE="1"; fi
           ${CC} --version
           echo ""
           git clone --depth 1 https://github.com/mupen64plus/mupen64plus-core.git ../mupen64plus-core
           MSG="1.2"
-          mkdir tmp
-          for SDL in sdl sdl2
-          do
+          mkdir pkg
+          for SDL in sdl sdl2; do
             echo ""
             echo ":: ${{ matrix.cc }} ${{ matrix.platform }} / SDL${MSG} ::"
             echo ""
@@ -78,22 +79,20 @@ jobs:
             echo ""
             make CC="${CC}" CXX="${CXX}" BITS="${{ matrix.bits }}" SDL_CONFIG="${SDL}-config" -C projects/unix all -j4
             echo ""
-            make -C projects/unix install DESTDIR="${ORIG}/tmp"
+            make -C projects/unix install DESTDIR="${ORIG}/pkg/"
             echo ""
-            cd tmp/usr/local/bin
-            ls -gG mupen64plus
-            ldd mupen64plus
+            ls -gG pkg/usr/local/bin/*
+            echo ""
+            ldd pkg/usr/local/bin/mupen64plus
             MSG="2"
-            cd "${ORIG}"
           done
-          mkdir pkg
-          if [[ "${CC}" == "gcc" ]]; then tar cvzf pkg/mupen64plus-ui-console-${{ matrix.platform }}-g${G_REV}.tar.gz -C tmp/ "usr"; fi
+          tar cvzf pkg/mupen64plus-ui-console-linux-${{ matrix.platform }}-g${{ env.G_REV }}.tar.gz -C pkg/ "usr"
       - name: Upload artifact
+        if: matrix.cc == 'GCC'
         uses: actions/upload-artifact@v3
         with:
-          name: mupen64plus-ui-console-${{ matrix.platform }}-g${{ env.G_REV }}
-          path: pkg/*
-          if-no-files-found: ignore
+          name: mupen64plus-ui-console-linux-${{ matrix.platform }}-g${{ env.G_REV }}
+          path: pkg/*.tar.gz
 
   MSYS2:
     strategy:
@@ -109,7 +108,8 @@ jobs:
             cross: i686
             bits: 32
     name: Windows / MSYS2 ${{ matrix.cc }} / ${{ matrix.platform }}
-    runs-on: windows-2019
+    runs-on: windows-2022
+    if: (github.event_name == 'schedule' && github.repository == 'mupen64plus/mupen64plus-ui-console') || (github.event_name != 'schedule')
     defaults:
       run:
         shell: msys2 {0}
@@ -126,17 +126,18 @@ jobs:
             mingw-w64-${{ matrix.cross }}-gcc
             mingw-w64-${{ matrix.cross }}-toolchain
             mingw-w64-${{ matrix.cross }}-SDL2
-      - name: Build and related stuff
+      - name: Build and related stuff, backup binaries
         run: |
-          if [[ ${{ matrix.bits }} -eq 32 ]]; then export OPTFLAGS="-O2 -flto -mtune=pentium4"; else export OPTFLAGS="-O2 -flto -mtune=core2"; fi
           echo "G_REV=$(git rev-parse --short HEAD)" >> "${GITHUB_ENV}"
+          if [[ ${{ matrix.bits }} -eq 32 ]]; then CPU_TUNE="-msse2 -mtune=pentium4"; else CPU_TUNE="-mtune=core2"; fi
+          export OPTFLAGS="-O2 -flto ${CPU_TUNE}"
           ORIG="$(pwd)"
           CC="gcc"
           CXX="g++"
           ${CC} --version
           echo ""
           git clone --depth 1 https://github.com/mupen64plus/mupen64plus-core.git ../mupen64plus-core
-          mkdir tmp
+          mkdir pkg
           echo ""
           echo ":: ${{ matrix.cc }} ${{ matrix.platform }} / SDL2 ::"
           echo ""
@@ -144,35 +145,16 @@ jobs:
           echo ""
           make CC="${CC}" CXX="${CXX}" BITS="${{ matrix.bits }}" -C projects/unix all -j4
           echo ""
-          make -C projects/unix install PLUGINDIR="" SHAREDIR="" BINDIR="" MANDIR="" LIBDIR="" APPSDIR="" ICONSDIR="icons" INCDIR="api" LDCONFIG="true" DESTDIR="${ORIG}/tmp"
+          make -C projects/unix install PLUGINDIR="" SHAREDIR="" BINDIR="" MANDIR="" LIBDIR="" APPSDIR="" ICONSDIR="icons" INCDIR="api" LDCONFIG="true" DESTDIR="${ORIG}/pkg/"
           echo ""
-          ls -gG tmp/*.exe
-          ldd tmp/mupen64plus.exe
-      - name: Copy binaries, dependencies, etc...
+          ls -gG pkg/*.exe
+          echo ""
+          ldd pkg/mupen64plus.exe
+      - name: Backup dependencies, etc...
         run: |
-          mkdir pkg
-          if [[ ${{ matrix.bits }} -eq 32 ]]; then LIBGCC="libgcc_s_dw2-1"; else LIBGCC="libgcc_s_seh-1"; fi
-          for LIB in ${LIBGCC} libwinpthread-1 SDL2
-          do
-            echo ":: Copying ${LIB}.dll"
-            cp "/mingw${{ matrix.bits }}/bin/${LIB}.dll" pkg/
-          done
-          if [ -d data ]; then
-            cd data
-            for DAT in *
-            do
-              if [[ "${DAT}" != "mupen64plus.desktop" ]]; then
-                echo ":: Copying ${DAT}"
-                cp -r "${DAT}" ../pkg/
-              fi
-            done
-          fi
-          cd ../tmp
-          for BIN in *.exe
-          do
-            echo ":: Copying ${BIN}"
-            cp "${BIN}" ../pkg/
-          done
+          echo ":: Copying SDL2.dll"
+          cp "/mingw${{ matrix.bits }}/bin/SDL2.dll" pkg/
+          rm -f pkg/mupen64plus.desktop
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -190,20 +172,18 @@ jobs:
           - toolset: v141_xp
             platform: x86
             vs: 2019
-    name: Windows / MSVC ${{ matrix.toolset }} / ${{ matrix.platform }}
+    name: Windows / MSVC with ${{ matrix.toolset }} / ${{ matrix.platform }}
     runs-on: windows-${{ matrix.vs }}
+    if: (github.event_name == 'schedule' && github.repository == 'mupen64plus/mupen64plus-ui-console') || (github.event_name != 'schedule')
     defaults:
       run:
         shell: cmd
     steps:
       - uses: actions/checkout@v3
       - uses: microsoft/setup-msbuild@v1
-    #  with:
-    #    vs-version: 16.11
-      - name: Build and related stuff
+      - name: Build and related stuff, backup binaries
         run: |
-          for /f "tokens=1" %%R in ('git rev-parse --short HEAD') do set "G_REV=%%R"
-          echo G_REV=%G_REV%>> "%GITHUB_ENV%"
+          for /f "tokens=1" %%R in ('git rev-parse --short HEAD') do echo G_REV=%%R>> "%GITHUB_ENV%"
           set "ARCH=${{ matrix.platform }}"
           if [%ARCH%] == [x86] set "ARCH=Win32"
           echo.
@@ -211,19 +191,16 @@ jobs:
           echo.
           git clone --depth 1 https://github.com/mupen64plus/mupen64plus-core.git ..\mupen64plus-core
           git clone --depth 1 https://github.com/mupen64plus/mupen64plus-win32-deps.git ..\mupen64plus-win32-deps
+          md pkg\icons
           echo.
           msbuild projects\msvc\mupen64plus-ui-console.vcxproj /p:Configuration=Release;Platform=%ARCH%;PlatformToolset=${{ matrix.toolset }}
           echo.
-          md backup
-          copy projects\msvc\%ARCH%\Release\mupen64plus-ui-console.exe backup\
-          dir backup\*.exe
-      - name: Copy binaries, dependencies, etc...
+          copy "projects\msvc\%ARCH%\Release\mupen64plus-ui-console.exe" pkg\
+          dir pkg\*.exe
+      - name: Backup dependencies, etc...
         run: |
-          md pkg\icons
-          cd pkg
-          xcopy "..\backup" .
-          xcopy /e "..\data\icons" icons
-          copy "..\..\mupen64plus-win32-deps\SDL2-2.24.0\lib\${{ matrix.platform }}\*.dll" .
+          xcopy /e data\icons pkg\icons
+          copy "..\mupen64plus-win32-deps\SDL2-2.26.3\lib\${{ matrix.platform }}\*.dll" pkg\
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -232,8 +209,8 @@ jobs:
 
   Nightly-build:
     runs-on: ubuntu-latest
+    if: github.ref_name == 'master'
     needs: [Linux, MSYS2, MSVC]
-    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v3
       - name: Download artifacts
@@ -248,8 +225,7 @@ jobs:
         run: |
           mkdir pkg
           cd binaries
-          for BIN in *
-          do
+          for BIN in *; do
             cd "${BIN}"
             if [[ "${BIN:23:4}" == "msys" ]]; then
               echo ":: Creating ${BIN}.zip"
@@ -265,10 +241,9 @@ jobs:
           done
           cd ../pkg
           echo ""
-          for BIN in *
-          do
+          for BIN in *; do
             ls -gG ${BIN}
-            tigerdeep -l ${BIN} >> ../${BIN:0:22}.tiger.txt
+            tigerdeep -lz ${BIN} >> ../${BIN:0:22}.tiger.txt
             sha256sum ${BIN} >> ../${BIN:0:22}.sha256.txt
             sha512sum ${BIN} >> ../${BIN:0:22}.sha512.txt
           done

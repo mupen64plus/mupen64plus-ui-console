@@ -886,6 +886,7 @@ static m64p_media_loader l_media_loader =
     NULL,
     media_loader_get_gb_cart_rom,
     media_loader_get_gb_cart_ram,
+    NULL,
     media_loader_get_dd_rom,
     media_loader_get_dd_disk
 };

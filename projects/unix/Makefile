@@ -68,7 +68,7 @@ ifneq ("$(filter pentium i%86,$(HOST_CPU))","")
 endif
 
 SRCDIR = ../../src
-OBJDIR = _obj$(POSTFIX
+OBJDIR = _obj$(POSTFIX)
 
 # base CFLAGS, LDLIBS, and LDFLAGS
 OPTFLAGS ?= -O3 -flto
@@ -253,9 +253,6 @@ else
   INSTALL_STRIP_FLAG ?= -s
 endif
 
-SRCDIR = ../../src
-OBJDIR = _obj$(POSTFIX)
-
 ifeq ("$(OS)","MINGW")
   EXEEXT = .exe
 else
@@ -307,8 +304,8 @@ targets:
 	@echo "    PIE=(1|0)      == Force enable/disable of position independent executables"
 	@echo "    POSTFIX=name  == String added to the name of the the build (default: '')"
 	@echo "  Install Options:"
-	@echo "    PREFIX=path    == install/uninstall prefix (default: /usr/local/)"
-	@echo "    BINDIR=path    == path to install mupen64plus binary (default: PREFIX/bin/)"
+	@echo "    PREFIX=path    == install/uninstall prefix (default: /usr/local)"
+	@echo "    BINDIR=path    == path to install mupen64plus binary (default: PREFIX/bin)"
 	@echo "    MANDIR=path    == path to install mupen64plus manual page (default: PREFIX/share/man)"
 	@echo "    APPSDIR=path   == path to install desktop file (default: PREFIX/share/applications)"
 	@echo "    ICONSDIR=path  == path to install icon files (default: PREFIX/share/icons/hicolor)"

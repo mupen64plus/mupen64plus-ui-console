@@ -1,9 +1,88 @@
 Mupen64Plus-UI-Console RELEASE
 ------------------------------
 
-Mupen64Plus-UI-Console Front-End v2.5.9 - February 10, 2019
------------------------------------------------------------
- - *** BETA RELEASE *** For Testing Only ***
+---------------------------------------------------------
+# Mupen64Plus-UI-Console Front-End v2.6.0 - July 14, 2024
+
+## Merged PRs
+
+* [83](https://github.com/mupen64plus/mupen64plus-ui-console/pull/83): CI/CD: Update to generic scripts, independent schedule, etc
+* [82](https://github.com/mupen64plus/mupen64plus-ui-console/pull/82): CI/CD: Fixes Ubuntu i386 builds, among other changes
+* [81](https://github.com/mupen64plus/mupen64plus-ui-console/pull/81): main.c: Fix 64DD ROM loading
+* [80](https://github.com/mupen64plus/mupen64plus-ui-console/pull/80): CI/CD: Integrate scheduled builds and other...
+* [78](https://github.com/mupen64plus/mupen64plus-ui-console/pull/78): CI/CD: Update MSVC
+* [77](https://github.com/mupen64plus/mupen64plus-ui-console/pull/77): CI/CD: Update
+* [74](https://github.com/mupen64plus/mupen64plus-ui-console/pull/74): README: Update parameters documentation.
+  Savestate, 64DD and PIF options previously missing.
+* [72](https://github.com/mupen64plus/mupen64plus-ui-console/pull/72): CI/CD: Implement GitHub Actions and public nightly builds
+* [70](https://github.com/mupen64plus/mupen64plus-ui-console/pull/70): remove redundant condition about PIE value in Makefile
+* [69](https://github.com/mupen64plus/mupen64plus-ui-console/pull/69): fix build with mingw64
+* [66](https://github.com/mupen64plus/mupen64plus-ui-console/pull/66): build: Fix the build with 'cc' on gentoo.
+* [64](https://github.com/mupen64plus/mupen64plus-ui-console/pull/64): build: Allow out of tree builds.
+* [61](https://github.com/mupen64plus/mupen64plus-ui-console/pull/61): Allow non-default compilers without resorting to symbolic links
+* [60](https://github.com/mupen64plus/mupen64plus-ui-console/pull/60): Allow to set custom platform toolset from commands
+* [59](https://github.com/mupen64plus/mupen64plus-ui-console/pull/59): Add SDL2_net dependency
+* [58](https://github.com/mupen64plus/mupen64plus-ui-console/pull/58): PIF binary support
+* [57](https://github.com/mupen64plus/mupen64plus-ui-console/pull/57): AppVeyor with artifact packaging
+* [56](https://github.com/mupen64plus/mupen64plus-ui-console/pull/56): Changes to have more generic project files + Other things...
+
+
+## Closed Issues
+
+* [79](https://github.com/mupen64plus/mupen64plus-ui-console/issues/79): High Dpi awareness
+* [76](https://github.com/mupen64plus/mupen64plus-ui-console/issues/76): Unrecognized UI-Console commands
+* [73](https://github.com/mupen64plus/mupen64plus-ui-console/issues/73): How to view osSyncPrints?
+* [67](https://github.com/mupen64plus/mupen64plus-ui-console/issues/67): Fails to build with mingw64 due to usage of "PIE" option on system without explicit PIE
+* [65](https://github.com/mupen64plus/mupen64plus-ui-console/issues/65): gcc9 build failure
+* [62](https://github.com/mupen64plus/mupen64plus-ui-console/issues/62): Build error after #61 merged
+* [54](https://github.com/mupen64plus/mupen64plus-ui-console/issues/54): 2.5.9: Missing config API change
+
+
+## Top Contributors (2 or more commits)
+1. Jj0YzL5nvJ
+2. richard42
+3. GhostlyDark
+4. orbea
+5. loganmc10
+6. Narann
+
+
+-------------------------------------------------------------
+# Mupen64Plus-UI-Console Front-End v2.5.9 - February 10, 2019
+
+## Merged PRs
+
+* [52](https://github.com/mupen64plus/mupen64plus-ui-console/pull/52): Fix setting plugin parameters when configuration file not present.
+* [51](https://github.com/mupen64plus/mupen64plus-ui-console/pull/51): Enhancements to debugging interface
+* [48](https://github.com/mupen64plus/mupen64plus-ui-console/pull/48): Fix nosaveoptions
+* [47](https://github.com/mupen64plus/mupen64plus-ui-console/pull/47): Make --nosaveoptions not ever save options.
+* [45](https://github.com/mupen64plus/mupen64plus-ui-console/pull/45): Update homepage links
+* [44](https://github.com/mupen64plus/mupen64plus-ui-console/pull/44): Build MXE targets as additional tests in travis build matrix
+* [43](https://github.com/mupen64plus/mupen64plus-ui-console/pull/43): Add basic support for 64DD.
+* [41](https://github.com/mupen64plus/mupen64plus-ui-console/pull/41): Basic support for GB cart loader command.
+* [40](https://github.com/mupen64plus/mupen64plus-ui-console/pull/40): Fix for #39.
+  This should fix https://github.com/mupen64plus/mupen64plus-ui-console/issues/39
+* [36](https://github.com/mupen64plus/mupen64plus-ui-console/pull/36): Fix no-pie mode for compilers that default to PIE
+* [35](https://github.com/mupen64plus/mupen64plus-ui-console/pull/35): Use faster container based Travis CI
+* [29](https://github.com/mupen64plus/mupen64plus-ui-console/pull/29): Add support for VIDEXT_HEADER
+* [28](https://github.com/mupen64plus/mupen64plus-ui-console/pull/28): bump macosx-version-min to 10.6 for SDL2.0.5.
+  Allows for compilation on MacOS 10.12 Sierra using packages from Homebrew (samplerate speexdsp nasm and the sdl2 packages).
+* [27](https://github.com/mupen64plus/mupen64plus-ui-console/pull/27): New implementation of the savestate loaded at startup option.
+  The savestate will be loaded on the first safe state interrupt instead of being loaded on the first frame.
+* [26](https://github.com/mupen64plus/mupen64plus-ui-console/pull/26): Use Ubuntu Trusty as base system for Travis CI
+* [22](https://github.com/mupen64plus/mupen64plus-ui-console/pull/22): Added x64 configuration to VisualStudio2013 project file
+* [21](https://github.com/mupen64plus/mupen64plus-ui-console/pull/21): Remove unnecessary OpenBSD warning.
+
+
+## Closed Issues
+
+* [50](https://github.com/mupen64plus/mupen64plus-ui-console/issues/50): COREDIR and PLUGINDIR should default to a value derived from PREFIX
+* [46](https://github.com/mupen64plus/mupen64plus-ui-console/issues/46): Missing definitions of m64p_media_loader and M64CMD_SET_MEDIA_LOADER
+* [39](https://github.com/mupen64plus/mupen64plus-ui-console/issues/39): Fails to build under windows
+* [34](https://github.com/mupen64plus/mupen64plus-ui-console/issues/34): [SOLVED] Bad value during make
+* [30](https://github.com/mupen64plus/mupen64plus-ui-console/issues/30): Setting position of window (...+%d+%d)
+* [23](https://github.com/mupen64plus/mupen64plus-ui-console/issues/23): Custom config folder with --configdir doesn't include save folder
+
 
 Mupen64Plus-UI-Console Front-End v2.5 - April 26, 2015
 ------------------------------------------------------

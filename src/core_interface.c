@@ -141,19 +141,22 @@ m64p_error AttachCoreLib(const char *CoreLibFilepath)
 #endif
     /* for MacOS, look for the library in the Frameworks folder of the app bundle */
 #if defined(__APPLE__)
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    if (mainBundle != NULL)
+    if (rval != M64ERR_SUCCESS || CoreHandle == NULL)
     {
-        CFURLRef frameworksURL = CFBundleCopyPrivateFrameworksURL(mainBundle);
-        if (frameworksURL != NULL)
+        CFBundleRef mainBundle = CFBundleGetMainBundle();
+        if (mainBundle != NULL)
         {
-            char libPath[1024 + 32];
-            if (CFURLGetFileSystemRepresentation(frameworksURL, TRUE, (uint8_t *) libPath, 1024))
+            CFURLRef frameworksURL = CFBundleCopyPrivateFrameworksURL(mainBundle);
+            if (frameworksURL != NULL)
             {
-                strcat(libPath, "/" OSAL_DEFAULT_DYNLIB_FILENAME);
-                rval = osal_dynlib_open(&CoreHandle, libPath);
+                char libPath[1024 + 32];
+                if (CFURLGetFileSystemRepresentation(frameworksURL, TRUE, (uint8_t *) libPath, 1024))
+                {
+                    strcat(libPath, "/" OSAL_DEFAULT_DYNLIB_FILENAME);
+                    rval = osal_dynlib_open(&CoreHandle, libPath);
+                }
+                CFRelease(frameworksURL);
             }
-            CFRelease(frameworksURL);
         }
     }
 #endif

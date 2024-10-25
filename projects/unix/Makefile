@@ -74,7 +74,7 @@ OBJDIR = _obj$(POSTFIX)
 OPTFLAGS ?= -O3 -flto
 WARNFLAGS ?= -Wall
 
-CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -fno-strict-aliasing -I$(SRCDIR)
+CFLAGS += $(OPTFLAGS) $(WARNFLAGS) -ffast-math -I$(SRCDIR)
 ifeq ($(OS), MINGW)
   CFLAGS += -lpthread
   LDLIBS += -lpthread

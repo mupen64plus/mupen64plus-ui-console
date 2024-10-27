@@ -102,19 +102,21 @@ ifeq ($(OS), OSX)
   endif
 endif
 
+# test for essential build dependencies
+ifeq ($(origin PKG_CONFIG), undefined)
+  PKG_CONFIG = $(CROSS_COMPILE)pkg-config
+  ifeq ($(shell which $(PKG_CONFIG) 2>/dev/null),)
+    $(error $(PKG_CONFIG) not found)
+  endif
+endif
+
 # test for presence of SDL
 ifeq ($(origin SDL_CFLAGS) $(origin SDL_LDLIBS), undefined undefined)
-  SDL_CONFIG = $(CROSS_COMPILE)sdl2-config
-  ifeq ($(shell which $(SDL_CONFIG) 2>/dev/null),)
-    SDL_CONFIG = $(CROSS_COMPILE)sdl-config
-    ifeq ($(shell which $(SDL_CONFIG) 2>/dev/null),)
-      $(error No SDL development libraries found!)
-    else
-      $(warning Using SDL 1.2 libraries)
-    endif
+  ifeq ($(shell $(PKG_CONFIG) --modversion sdl2 2>/dev/null),)
+    $(error No SDL2 development libraries found!)
   endif
-  SDL_CFLAGS  += $(shell $(SDL_CONFIG) --cflags)
-  SDL_LDLIBS += $(shell $(SDL_CONFIG) --libs)
+  SDL_CFLAGS += $(shell $(PKG_CONFIG) --cflags sdl2)
+  SDL_LDLIBS += $(shell $(PKG_CONFIG) --libs sdl2)
 endif
 CFLAGS += $(SDL_CFLAGS)
 LDLIBS += $(SDL_LDLIBS)

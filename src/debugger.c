@@ -346,6 +346,47 @@ int debugger_loop(void *arg) {
                 printf("\n");
             }
         }
+        else if (strncmp(input, "dumpmem", 7) == 0) {
+            uint32_t addr;
+            uint32_t len;
+            char filename[64];
+
+            uint8_t *membase;
+            FILE *f;
+
+            if (sscanf(input, "dumpmem %x 0x%x %63s", &addr, &len, filename) != 3 &&
+                sscanf(input, "dumpmem %x %u %63s",   &addr, &len, filename) != 3) {
+                printf("Improperly formatted dumpmem command: '%s'\n", input);
+                continue;
+            }
+
+            filename[sizeof(filename) - 1] = '\0';
+
+            addr = (*DebugVirtualToPhysical)(addr);
+            if (addr >= 0x800000) {
+                printf("Requested address must be within RDRAM region\n");
+                continue;
+            }
+
+            // 8 MB is the upper limit
+            if (len > 0x800000 - addr)
+                len = 0x800000 - addr;
+
+            membase = (*DebugMemGetPointer)(M64P_DBG_PTR_RDRAM);
+
+            f = fopen(filename, "wb");
+            if (f == NULL) {
+                printf("Could not open file '%s' for write\n", filename);
+                continue;
+            }
+
+            fwrite(membase + addr, len, 1, f);
+
+            fclose(f);
+
+            printf("Dumped 0x%08x bytes starting at 0x%08x to %s\n",
+                len, addr, filename);
+        }
         else if (strncmp(input, "translate", 9) == 0) {
             uint32_t virt_addr, phys_addr;
             if (sscanf(input, "translate %i", &virt_addr) == 1) {

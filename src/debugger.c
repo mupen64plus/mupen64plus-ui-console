@@ -27,7 +27,11 @@
 #include "core_interface.h"
 #include "debugger.h"
 
+#ifdef USE_SDL3
+#include <SDL3/SDL.h>
+#else
 #include <SDL.h>
+#endif
 
 /*
  * Variables

@@ -30,9 +30,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef USE_SDL3
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_thread.h>
+#else
 #include <SDL.h>
 #include <SDL_main.h>
 #include <SDL_thread.h>
+#endif
 
 #include "cheat.h"
 #include "compare_core.h"
